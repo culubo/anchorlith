@@ -1,0 +1,75 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 You are building a web app called "Central Hub" (name may change) using:\
+- Next.js App Router + TypeScript\
+- Tailwind CSS\
+- Framer Motion for subtle animations\
+- Supabase for Postgres DB + Auth + Storage\
+Default UI philosophy: Obsidian/Notion/OpenAI UI \'97 text, spacing, indentation, minimal containers.\
+\
+# Product Goals\
+- Calm, minimalist, text-forward productivity hub.\
+- Private by default. Only Resume/Portfolio/Links are shareable via public/unlisted slugs.\
+- PWA installable. No native app required for MVP.\
+\
+# Hard UI Rules (do not violate)\
+- NO emoji anywhere in UI.\
+- Avoid card grids and heavy borders. Prefer whitespace, typography, subtle dividers.\
+- Use indentation and text weight instead of containers.\
+- Header: left title + right tabs on the SAME row (Today / Calendar / Notes / To-Dos / Reminders).\
+- Minimal palette: black/white + subtle neutral grays. One optional accent only.\
+- Buttons: minimal, text-like. Prefer inline actions.\
+- Icons: avoid except for essential (search, settings). No decorative icons.\
+\
+# Layout Rules\
+- Pages are focused: each route shows ONE primary surface.\
+- Today page shows:\
+  - "Today \'97 \{date\}"\
+  - Schedule list with times (left, lighter) and titles (right) with optional subtext\
+  - Tasks checkbox list under schedule\
+  - Optional right column: small "Public" shortcuts (Resume/Portfolio/Links)\
+- Notes page: split view (list left, editor right) with markdown.\
+- Todos page: list view with filters (today/upcoming/completed).\
+- Calendar MVP: list view by date + create/edit event (no full grid required).\
+- Public pages are read-only and extremely clean.\
+\
+# Architecture Rules\
+- Use Supabase:\
+  - Auth (choose email+password OR magic link and stick to it)\
+  - DB tables: notes, todos, events, reminders, files, public_pages\
+  - Storage for images + PDFs\
+- Use server actions or route handlers consistently (pick one pattern per area).\
+- Keep types in a shared `types/` or `lib/types.ts`.\
+\
+# Data & Features (MVP only)\
+- CRUD: notes, todos, events, reminders.\
+- Rule-based \'93smart\'94 suggestions only:\
+  - If event title starts with "task:" OR includes checklist items, create a todo for that date.\
+  - Detect date strings in notes and suggest linking to date.\
+- Public visibility modes for resume/portfolio/links:\
+  - private | unlisted (random slug) | public\
+  - allow rotating slug for unlisted\
+- Export user data as JSON download.\
+\
+# Non-goals (do not implement yet)\
+- Real-time collaboration\
+- Push notifications\
+- Complex calendar invitations/email sending\
+- Notion-like block databases\
+- Excessive UI components or design systems\
+\
+# Code Style\
+- Prefer simple, readable components; avoid abstraction too early.\
+- Tailwind classes should be clean and consistent.\
+- Use semantic HTML and accessibility basics (labels, focus states).\
+- Use Framer Motion sparingly: fades, small slide-in, list item insert.\
+\
+# If unsure\
+- Default to simplicity and text-first layout.\
+- Avoid adding features that were not explicitly requested in the spec.\
+}
