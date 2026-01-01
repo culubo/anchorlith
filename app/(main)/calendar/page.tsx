@@ -10,6 +10,7 @@ import type { Event } from '@/lib/queries/events'
 
 export default function CalendarPage() {
   const [showForm, setShowForm] = useState(false)
+  const [prefilledDate, setPrefilledDate] = useState<Date | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,16 +87,27 @@ export default function CalendarPage() {
 
       {showForm ? (
         <EventForm
+          prefilledDate={prefilledDate}
           onSuccess={() => {
             setShowForm(false)
+            setPrefilledDate(null)
             handleEventChange()
           }}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => {
+            setShowForm(false)
+            setPrefilledDate(null)
+          }}
         />
       ) : loading ? (
         <div className="text-text-secondary">Loading...</div>
       ) : viewMode === 'grid' ? (
-        <CalendarGrid events={events} />
+        <CalendarGrid
+          events={events}
+          onAddEvent={(date) => {
+            setPrefilledDate(date)
+            setShowForm(true)
+          }}
+        />
       ) : (
         <EventList onEventChange={handleEventChange} />
       )}

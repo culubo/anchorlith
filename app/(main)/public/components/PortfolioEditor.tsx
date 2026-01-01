@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
+import { FileUpload } from '@/components/FileUpload'
+import { motion } from 'framer-motion'
 
 interface Project {
   title: string
@@ -15,7 +17,47 @@ interface Project {
 export function PortfolioEditor() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [uploadModes, setUploadModes] = useState<Record<number, 'url' | 'upload'>>({})
+  const [username, setUsername] = useState('')
+  const [publicUrl, setPublicUrl] = useState('')
   const supabase = createClient()
+
+  // Load existing portfolio data
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) return
+
+        const { data: existing } = await supabase
+          .from('public_pages')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('type', 'portfolio')
+          .single()
+
+        if (existing) {
+          if (existing.content_json?.projects) {
+            setProjects(existing.content_json.projects)
+          }
+          setUsername(existing.username || '')
+          if (existing.username) {
+            setPublicUrl(`/p/${existing.username}/portfolio`)
+          }
+        } else {
+          // Generate username from email
+          const emailUsername = user.email?.split('@')[0] || 'user'
+          setUsername(emailUsername.toLowerCase().replace(/[^a-z0-9]/g, ''))
+        }
+      } catch (error) {
+        console.error('Failed to load portfolio:', error)
+      }
+    }
+    loadPortfolio()
+  }, [supabase])
 
   const addProject = () => {
     setProjects([...projects, { title: '', description: '' }])
@@ -25,6 +67,19 @@ export function PortfolioEditor() {
     const updated = [...projects]
     updated[index] = { ...updated[index], [field]: value }
     setProjects(updated)
+  }
+
+  const toggleUploadMode = (index: number) => {
+    setUploadModes(prev => ({
+      ...prev,
+      [index]: prev[index] === 'upload' ? 'url' : 'upload'
+    }))
+  }
+
+  const handleImageUpload = (index: number, file: any) => {
+    if (file.publicUrl) {
+      updateProject(index, 'imageUrl', file.publicUrl)
+    }
   }
 
   const removeProject = (index: number) => {
@@ -40,20 +95,54 @@ export function PortfolioEditor() {
 
       if (!user) throw new Error('Not authenticated')
 
-      const slug = `portfolio-${Math.random().toString(36).substring(7)}`
+      if (!username.trim()) {
+        alert('Please set a username')
+        return
+      }
 
-      await supabase.from('public_pages').upsert({
+      // Generate slug from username
+      const slug = `${username}-portfolio`
+
+      // Check if portfolio exists
+      const { data: existing } = await supabase
+        .from('public_pages')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('type', 'portfolio')
+        .single()
+
+      const updateData: any = {
         user_id: user.id,
         type: 'portfolio',
         slug,
-        visibility: 'private',
+        username: username.trim().toLowerCase(),
+        visibility: 'public',
         content_json: { projects },
-      })
+      }
 
-      alert('Portfolio saved!')
-    } catch (error) {
+      let error
+      if (existing) {
+        // Update existing
+        const { error: updateError } = await supabase
+          .from('public_pages')
+          .update(updateData)
+          .eq('id', existing.id)
+        error = updateError
+      } else {
+        // Insert new
+        const { error: insertError } = await supabase
+          .from('public_pages')
+          .insert(updateData)
+        error = insertError
+      }
+
+      if (error) throw error
+
+      setPublicUrl(`/p/${username.trim().toLowerCase()}/portfolio`)
+      alert('Portfolio saved! Your public URL will be available when the app is hosted.')
+    } catch (error: any) {
       console.error('Failed to save portfolio:', error)
-      alert('Failed to save portfolio')
+      alert(`Failed to save portfolio: ${error.message}`)
     } finally {
       setIsSaving(false)
     }
@@ -61,10 +150,31 @@ export function PortfolioEditor() {
 
   return (
     <div className="space-y-6 pl-8">
-      <Button onClick={addProject}>Add Project</Button>
+      <div className="space-y-4">
+        <div>
+          <Input
+            label="Username (for URL)"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+            placeholder="username"
+            required
+          />
+          {publicUrl && (
+            <p className="text-sm text-text-secondary mt-1">
+              Your portfolio will be available at: <code className="bg-bg-secondary px-2 py-1 rounded">{publicUrl}</code>
+            </p>
+          )}
+        </div>
+        <Button onClick={addProject}>Add Project</Button>
+      </div>
 
       {projects.map((project, index) => (
-        <div key={index} className="space-y-4 pb-6 border-b border-border-subtle">
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 pb-6 border-b border-border-subtle"
+        >
           <Input
             label="Title"
             value={project.title}
@@ -87,12 +197,68 @@ export function PortfolioEditor() {
             value={project.link || ''}
             onChange={(e) => updateProject(index, 'link', e.target.value)}
           />
-          <Input
-            label="Image URL (optional)"
-            type="url"
-            value={project.imageUrl || ''}
-            onChange={(e) => updateProject(index, 'imageUrl', e.target.value)}
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm text-text-secondary">
+                Image (optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => toggleUploadMode(index)}
+                className="text-xs text-text-secondary hover:text-text-primary transition-colors"
+              >
+                {uploadModes[index] === 'upload' ? 'Switch to URL' : 'Switch to Upload'}
+              </button>
+            </div>
+            
+            {uploadModes[index] === 'upload' ? (
+              <div className="space-y-2">
+                <FileUpload
+                  linkedType="portfolio"
+                  onUploadComplete={(file) => handleImageUpload(index, file)}
+                  accept="image/*"
+                />
+                {project.imageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={project.imageUrl}
+                      alt="Preview"
+                      className="max-w-xs h-32 object-cover rounded border border-border-subtle"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => updateProject(index, 'imageUrl', '')}
+                      variant="ghost"
+                      className="text-xs text-red-500 hover:text-red-600 mt-1"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  type="url"
+                  value={project.imageUrl || ''}
+                  onChange={(e) => updateProject(index, 'imageUrl', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {project.imageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={project.imageUrl}
+                      alt="Preview"
+                      className="max-w-xs h-32 object-cover rounded border border-border-subtle"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <Button
             onClick={() => removeProject(index)}
             variant="ghost"
@@ -100,10 +266,10 @@ export function PortfolioEditor() {
           >
             Remove
           </Button>
-        </div>
+        </motion.div>
       ))}
 
-      <Button onClick={handleSave} disabled={isSaving}>
+      <Button onClick={handleSave} disabled={isSaving || !username.trim()}>
         {isSaving ? 'Saving...' : 'Save Portfolio'}
       </Button>
     </div>

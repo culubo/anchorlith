@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ResumeEditor } from './components/ResumeEditor'
 import { PortfolioEditor } from './components/PortfolioEditor'
 import { LinksEditor } from './components/LinksEditor'
@@ -10,7 +11,16 @@ import { motion } from 'framer-motion'
 type Tab = 'resume' | 'portfolio' | 'links'
 
 export default function PublicPage() {
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<Tab>('resume')
+
+  // Check if we're coming from an edit link
+  useEffect(() => {
+    const editType = searchParams?.get('edit')
+    if (editType && ['resume', 'portfolio', 'links'].includes(editType)) {
+      setActiveTab(editType as Tab)
+    }
+  }, [searchParams])
 
   const tabs: { label: string; value: Tab }[] = [
     { label: 'Resume', value: 'resume' },

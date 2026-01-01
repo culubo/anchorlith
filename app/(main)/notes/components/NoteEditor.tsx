@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CommandPreview } from './CommandPreview'
+import { CommandEditor } from './CommandEditor'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Checkbox } from '@/components/ui/Checkbox'
@@ -166,12 +167,11 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
             todoStates={todoStates}
           />
         ) : (
-          <textarea
+          <CommandEditor
             value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Start writing... Use /todo, /list, or /calendar commands"
-            className="w-full h-full p-0 bg-transparent border-0 resize-none focus:outline-none text-text-primary placeholder:text-text-tertiary disabled:opacity-50"
+            onChange={setBody}
             onKeyDown={handleKeyDown}
+            placeholder="Start writing... Use /todo, /list, or /calendar commands"
             disabled={!isEditable}
           />
         )}

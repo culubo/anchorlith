@@ -28,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# PDF files (user uploads)
+*.pdf
+
 # vercel
 .vercel
 

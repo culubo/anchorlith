@@ -49,11 +49,23 @@ export interface UpdateEventInput {
 export interface CreateReminderInput {
   title: string
   remind_at: string
+  repeat_type?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
+  repeat_interval?: number
+  repeat_end_date?: string | null
+  repeat_count?: number | null
+  event_id?: string | null
+  is_completed?: boolean
 }
 
 export interface UpdateReminderInput {
   id: string
   title?: string
   remind_at?: string
+  repeat_type?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
+  repeat_interval?: number
+  repeat_end_date?: string | null
+  repeat_count?: number | null
+  event_id?: string | null
+  is_completed?: boolean
 }
 

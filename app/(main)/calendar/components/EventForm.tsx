@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { createEvent } from '../actions'
@@ -8,15 +8,40 @@ import { createEvent } from '../actions'
 interface EventFormProps {
   onSuccess: () => void
   onCancel: () => void
+  prefilledDate?: Date | null
 }
 
-export function EventForm({ onSuccess, onCancel }: EventFormProps) {
+export function EventForm({ onSuccess, onCancel, prefilledDate }: EventFormProps) {
+  // Format date for datetime-local input
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
+  const getInitialStartDate = (): string => {
+    if (prefilledDate) {
+      return formatDateForInput(prefilledDate)
+    }
+    return ''
+  }
+
   const [title, setTitle] = useState('')
-  const [startAt, setStartAt] = useState('')
+  const [startAt, setStartAt] = useState(getInitialStartDate())
   const [endAt, setEndAt] = useState('')
   const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Update startAt when prefilledDate changes
+  useEffect(() => {
+    if (prefilledDate) {
+      setStartAt(formatDateForInput(prefilledDate))
+    }
+  }, [prefilledDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -2,17 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import type { Reminder } from '@/lib/queries/reminders'
+import type { Event } from '@/lib/queries/events'
 import { formatDateTime, formatRelativeTime } from '@/lib/utils/date'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { createReminder, deleteReminder } from '../actions'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { createReminder, deleteReminder, updateReminder } from '../actions'
 import { motion } from 'framer-motion'
 
 export function ReminderList() {
   const [reminders, setReminders] = useState<Reminder[]>([])
+  const [events, setEvents] = useState<Event[]>([])
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [remindAt, setRemindAt] = useState('')
+  const [repeatType, setRepeatType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null)
+  const [repeatInterval, setRepeatInterval] = useState(1)
+  const [repeatEndDate, setRepeatEndDate] = useState('')
+  const [eventId, setEventId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -29,8 +36,20 @@ export function ReminderList() {
     }
   }
 
+  const loadEvents = async () => {
+    try {
+      const response = await fetch('/api/events')
+      if (!response.ok) throw new Error('Failed to fetch events')
+      const data = await response.json()
+      setEvents(data)
+    } catch (error) {
+      console.error('Failed to load events:', error)
+    }
+  }
+
   useEffect(() => {
     loadReminders()
+    loadEvents()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +61,17 @@ export function ReminderList() {
       await createReminder({
         title: title.trim(),
         remind_at: new Date(remindAt).toISOString(),
+        repeat_type: repeatType || null,
+        repeat_interval: repeatType ? repeatInterval : undefined,
+        repeat_end_date: repeatEndDate ? new Date(repeatEndDate).toISOString() : null,
+        event_id: eventId || null,
       })
       setTitle('')
       setRemindAt('')
+      setRepeatType(null)
+      setRepeatInterval(1)
+      setRepeatEndDate('')
+      setEventId(null)
       setShowForm(false)
       loadReminders()
     } catch (error) {
@@ -63,6 +90,39 @@ export function ReminderList() {
     } catch (error) {
       console.error('Failed to delete reminder:', error)
     }
+  }
+
+  const handleToggleComplete = async (reminder: Reminder) => {
+    try {
+      await updateReminder({
+        id: reminder.id,
+        is_completed: !reminder.is_completed,
+      })
+      loadReminders()
+    } catch (error) {
+      console.error('Failed to update reminder:', error)
+    }
+  }
+
+  const getRepeatDescription = (reminder: Reminder): string | null => {
+    if (!reminder.repeat_type) return null
+    
+    const interval = reminder.repeat_interval || 1
+    const type = reminder.repeat_type
+    let desc = ''
+    
+    if (interval === 1) {
+      desc = type.charAt(0).toUpperCase() + type.slice(1)
+    } else {
+      desc = `Every ${interval} ${type}s`
+    }
+    
+    if (reminder.repeat_end_date) {
+      const endDate = new Date(reminder.repeat_end_date)
+      desc += ` until ${formatDateTime(endDate.toISOString())}`
+    }
+    
+    return desc
   }
 
   if (loading) {
@@ -90,6 +150,61 @@ export function ReminderList() {
             onChange={(e) => setRemindAt(e.target.value)}
             required
           />
+          
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Repeat
+            </label>
+            <select
+              value={repeatType || ''}
+              onChange={(e) => setRepeatType(e.target.value as any || null)}
+              className="w-full px-3 py-2 bg-bg-primary border border-border-subtle rounded text-text-primary focus:outline-none focus:ring-1 focus:ring-text-primary"
+            >
+              <option value="">No repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
+          {repeatType && (
+            <>
+              <Input
+                label="Repeat Every (interval)"
+                type="number"
+                min="1"
+                value={repeatInterval}
+                onChange={(e) => setRepeatInterval(parseInt(e.target.value) || 1)}
+                required
+              />
+              <Input
+                label="End Date (optional)"
+                type="datetime-local"
+                value={repeatEndDate}
+                onChange={(e) => setRepeatEndDate(e.target.value)}
+              />
+            </>
+          )}
+
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Link to Event (optional)
+            </label>
+            <select
+              value={eventId || ''}
+              onChange={(e) => setEventId(e.target.value || null)}
+              className="w-full px-3 py-2 bg-bg-primary border border-border-subtle rounded text-text-primary focus:outline-none focus:ring-1 focus:ring-text-primary"
+            >
+              <option value="">No event</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title} - {formatDateTime(event.start_at)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex items-center gap-2">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creating...' : 'Create Reminder'}
@@ -100,6 +215,10 @@ export function ReminderList() {
                 setShowForm(false)
                 setTitle('')
                 setRemindAt('')
+                setRepeatType(null)
+                setRepeatInterval(1)
+                setRepeatEndDate('')
+                setEventId(null)
               }}
               variant="ghost"
             >
@@ -113,34 +232,61 @@ export function ReminderList() {
         {reminders.length === 0 ? (
           <p className="text-sm text-text-tertiary">No reminders</p>
         ) : (
-          reminders.map((reminder, index) => (
-            <motion.div
-              key={reminder.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle last:border-0"
-            >
-              <div className="flex-1">
-                <h3 className="text-base text-text-primary mb-1">
-                  {reminder.title}
-                </h3>
-                <p className="text-sm text-text-secondary">
-                  {formatRelativeTime(reminder.remind_at)}
-                </p>
-                <p className="text-xs text-text-tertiary mt-1">
-                  {formatDateTime(reminder.remind_at)}
-                </p>
-              </div>
-              <Button
-                onClick={() => handleDelete(reminder.id)}
-                variant="ghost"
-                className="text-sm text-red-500 hover:text-red-600"
-              >
-                Delete
-              </Button>
-            </motion.div>
-          ))
+          reminders
+            .filter(r => !r.is_completed)
+            .map((reminder, index) => {
+              const linkedEvent = reminder.event_id 
+                ? events.find(e => e.id === reminder.event_id)
+                : null
+              const repeatDesc = getRepeatDescription(reminder)
+              
+              return (
+                <motion.div
+                  key={reminder.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle last:border-0"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-start gap-2 mb-1">
+                      <Checkbox
+                        checked={reminder.is_completed}
+                        onChange={() => handleToggleComplete(reminder)}
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-base text-text-primary">
+                          {reminder.title}
+                        </h3>
+                        {linkedEvent && (
+                          <p className="text-xs text-text-secondary mt-0.5">
+                            📅 Linked to: {linkedEvent.title}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-text-secondary">
+                      {formatRelativeTime(reminder.remind_at)}
+                    </p>
+                    <p className="text-xs text-text-tertiary mt-1">
+                      {formatDateTime(reminder.remind_at)}
+                    </p>
+                    {repeatDesc && (
+                      <p className="text-xs text-text-secondary mt-1">
+                        🔁 {repeatDesc}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => handleDelete(reminder.id)}
+                    variant="ghost"
+                    className="text-sm text-red-500 hover:text-red-600"
+                  >
+                    Delete
+                  </Button>
+                </motion.div>
+              )
+            })
         )}
       </div>
     </div>
