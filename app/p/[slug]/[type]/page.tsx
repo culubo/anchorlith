@@ -3,14 +3,11 @@ import { notFound } from 'next/navigation'
 import { EditButton } from './components/EditButton'
 
 interface PageProps {
-  params: {
-    slug: string
-    type: string
-  }
+  params: Promise<{ slug: string; type: string }>
 }
 
 export default async function PublicPage({ params }: PageProps) {
-  const { slug, type } = params
+  const { slug, type } = await params
 
   // Validate type
   if (!['resume', 'portfolio', 'links'].includes(type)) {
