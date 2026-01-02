@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useState, ReactNode } from 'react'
 
 type ColorMode = 'light' | 'dark' | 'system'
 
@@ -34,7 +34,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [customization, setCustomizationState] = useState<CustomizationSettings>(defaultCustomization)
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true)
     // Load from localStorage
     const savedColorMode = localStorage.getItem('colorMode') as ColorMode | null
@@ -54,13 +54,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!mounted) return
 
     // Determine effective color mode
-    let effective: 'light' | 'dark' = 'light'
-    if (colorMode === 'system') {
-      effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    } else {
-      effective = colorMode
-    }
-    setEffectiveColorMode(effective)
+    const effective: 'light' | 'dark' = colorMode === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      : colorMode
+    
+    // Use requestAnimationFrame to avoid synchronous setState in effect
+    requestAnimationFrame(() => {
+      setEffectiveColorMode(effective)
+    })
 
     // Apply color mode to document
     document.documentElement.setAttribute('data-color-mode', effective)

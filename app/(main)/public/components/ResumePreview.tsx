@@ -267,6 +267,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
       </div>
 
       {/* Print styles */}
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <style jsx global>{`
         @media print {
           @page {

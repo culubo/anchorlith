@@ -24,7 +24,7 @@ export async function getReminders() {
 
   if (!user) throw new Error('Not authenticated')
 
-  let query = supabase
+  const query = supabase
     .from('reminders')
     .select('*')
     .eq('user_id', user.id)
@@ -74,7 +74,7 @@ export async function getRemindersByDate(date: Date) {
   endOfDay.setHours(23, 59, 59, 999)
 
   // Get all reminders (including repeating ones)
-  let query = supabase
+  const query = supabase
     .from('reminders')
     .select('*')
     .eq('user_id', user.id)
@@ -164,7 +164,7 @@ function calculateNextOccurrence(
 ): boolean {
   if (endDate && endDate < checkStart) return false
 
-  let current = new Date(startDate)
+  const current = new Date(startDate)
   const checkDate = new Date(checkStart)
   checkDate.setHours(0, 0, 0, 0)
 

@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     // Try to query with is_completed filter first (if migration has been run)
-    let query = supabase
+    const query = supabase
       .from('reminders')
       .select('*')
       .eq('user_id', user.id)

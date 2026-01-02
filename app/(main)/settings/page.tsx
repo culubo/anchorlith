@@ -24,7 +24,7 @@ export default function SettingsPage() {
                   <strong className="text-text-primary">Today:</strong> Your daily dashboard showing today's schedule and tasks. Events and reminders appear in the schedule, while todos due today are listed as tasks.
                 </li>
                 <li>
-                  <strong className="text-text-primary">Notes:</strong> Create and organize notes with Markdown support. Use the split-view editor to write and preview your notes. Toggle the "Edit" checkbox to view past notes in read-only mode.
+                  <strong className="text-text-primary">Notes:</strong> Create and organize notes with Markdown support. Use the split-view editor to write and preview your notes. Toggle the &quot;Edit&quot; checkbox to view past notes in read-only mode.
                 </li>
                 <li>
                   <strong className="text-text-primary">Todos:</strong> Manage tasks with due dates, priorities, and tags. Complete tasks to see them animate and move to the bottom. Use filters to view today's tasks, upcoming items, or completed work.
