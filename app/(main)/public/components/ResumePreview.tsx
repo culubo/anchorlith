@@ -293,7 +293,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
             text-decoration: none !important;
           }
         }
-      `}</style>
+      `}} />
     </div>
   )
 }
