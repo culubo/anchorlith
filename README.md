@@ -97,3 +97,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## License
 
 AGPL-3.0
+
+<!-- Redeploy trigger -->
