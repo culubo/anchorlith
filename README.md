@@ -1,6 +1,8 @@
 # AnchorLith
 
-A minimalist, text-forward productivity web app inspired by Notion/Obsidian/OpenAI UI.
+A minimalist, text-forward productivity web app inspired by Notion/Obsidian UI.
+
+This is mainly for personal use, but I plan to deploy it so I can use it on multiple devices. 
 
 ## Features
 
