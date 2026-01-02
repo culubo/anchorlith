@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -15,9 +15,9 @@ export async function GET(
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Handle both sync and async params (Next.js 14 vs 15)
-    const resolvedParams = await Promise.resolve(params)
-    const noteId = resolvedParams.id
+    // In Next.js 15, params is always a Promise
+    const params = await context.params
+    const noteId = params.id
 
     if (!noteId) {
       return NextResponse.json({ error: 'Note ID is required' }, { status: 400 })

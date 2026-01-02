@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useContext, useEffect, useLayoutEffect, useState, ReactNode } from 'react'
 
 type ColorMode = 'light' | 'dark' | 'system'
