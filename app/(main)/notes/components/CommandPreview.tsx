@@ -3,18 +3,25 @@
 import { useState } from 'react'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { formatDate } from '@/lib/utils/date'
+import { DraggableImage } from '@/components/DraggableImage'
 
 interface CommandPreviewProps {
   content: string
   onToggleTodo?: (lineIndex: number) => void
   todoStates?: Record<number, boolean>
+  onImagePositionChange?: (lineIndex: number, x: number, y: number) => void
+  onContentUpdate?: (newContent: string) => void
 }
 
 interface ParsedLine {
-  type: 'text' | 'todo' | 'list' | 'calendar' | 'empty'
+  type: 'text' | 'todo' | 'list' | 'calendar' | 'image' | 'empty'
   content: string
   checked?: boolean
   calendarDate?: string
+  imageUrl?: string
+  imageId?: string
+  imageX?: number
+  imageY?: number
   lineIndex: number
 }
 
@@ -59,6 +66,32 @@ function parseContent(content: string): ParsedLine[] {
       }
     }
     
+    // Check for /image command
+    if (trimmed.startsWith('/image ')) {
+      const imageContent = trimmed.substring(7).trim()
+      // Parse image URL and optional position: /image url [x,y]
+      const parts = imageContent.split(/\s+/)
+      const imageUrl = parts[0]
+      let imageX = 0
+      let imageY = 0
+      
+      if (parts[1] && parts[1].match(/^\[\d+,\d+\]$/)) {
+        const coords = parts[1].slice(1, -1).split(',')
+        imageX = parseInt(coords[0], 10)
+        imageY = parseInt(coords[1], 10)
+      }
+      
+      return {
+        type: 'image',
+        content: imageContent,
+        imageUrl,
+        imageId: `img-${index}-${Date.now()}`,
+        imageX,
+        imageY,
+        lineIndex: index,
+      }
+    }
+    
     // Regular text
     return {
       type: 'text',
@@ -71,9 +104,27 @@ function parseContent(content: string): ParsedLine[] {
 export function CommandPreview({ 
   content, 
   onToggleTodo, 
-  todoStates = {} 
+  todoStates = {},
+  onImagePositionChange,
+  onContentUpdate,
 }: CommandPreviewProps) {
   const parsed = parseContent(content)
+  
+  const handleImagePositionChange = (lineIndex: number, x: number, y: number) => {
+    onImagePositionChange?.(lineIndex, x, y)
+    
+    // Update the content with new position
+    if (onContentUpdate) {
+      const lines = content.split('\n')
+      const line = lines[lineIndex]
+      if (line && line.trim().startsWith('/image ')) {
+        const imageUrl = line.trim().substring(7).trim().split(/\s+/)[0]
+        const newLine = `/image ${imageUrl} [${x},${y}]`
+        lines[lineIndex] = newLine
+        onContentUpdate(lines.join('\n'))
+      }
+    }
+  }
   
   return (
     <div className="space-y-2 text-text-primary">
@@ -121,6 +172,21 @@ export function CommandPreview({
             <div key={index} className="pl-8">
               <span className="text-text-secondary">📅 </span>
               <span className="text-text-primary">{displayDate}</span>
+            </div>
+          )
+        }
+        
+        if (line.type === 'image' && line.imageUrl) {
+          return (
+            <div key={index} className="pl-8 my-4">
+              <DraggableImage
+                src={line.imageUrl}
+                alt=""
+                id={line.imageId || `img-${index}`}
+                initialX={line.imageX || 0}
+                initialY={line.imageY || 0}
+                onPositionChange={(id, x, y) => handleImagePositionChange(line.lineIndex, x, y)}
+              />
             </div>
           )
         }

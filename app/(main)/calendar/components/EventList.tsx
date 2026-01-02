@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import type { Event } from '@/lib/queries/events'
 import { formatDate, formatTime, formatDateTime } from '@/lib/utils/date'
 import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/Button'
+import { deleteEvent } from '../actions'
+import { EventForm } from './EventForm'
 
 interface EventListProps {
   onEventChange?: () => void
@@ -12,6 +15,7 @@ interface EventListProps {
 export function EventList({ onEventChange }: EventListProps = {}) {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
   const loadEvents = async () => {
     try {
@@ -30,6 +34,31 @@ export function EventList({ onEventChange }: EventListProps = {}) {
   useEffect(() => {
     loadEvents()
   }, [])
+
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Delete this event?')) return
+    try {
+      await deleteEvent(eventId)
+      loadEvents()
+      onEventChange?.()
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+    }
+  }
+
+  if (editingEvent) {
+    return (
+      <EventForm
+        event={editingEvent}
+        onSuccess={() => {
+          setEditingEvent(null)
+          loadEvents()
+          onEventChange?.()
+        }}
+        onCancel={() => setEditingEvent(null)}
+      />
+    )
+  }
 
   if (loading) {
     return <div className="text-text-secondary">Loading...</div>
@@ -83,6 +112,22 @@ export function EventList({ onEventChange }: EventListProps = {}) {
                       {event.notes}
                     </p>
                   )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setEditingEvent(event)}
+                    variant="ghost"
+                    className="text-xs"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(event.id)}
+                    variant="ghost"
+                    className="text-xs text-red-500 hover:text-red-600"
+                  >
+                    Delete
+                  </Button>
                 </div>
               </motion.div>
             ))}

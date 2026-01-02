@@ -1,17 +1,68 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Event } from '@/lib/queries/events'
 import { formatDate, formatTime } from '@/lib/utils/date'
+import { Button } from '@/components/ui/Button'
+import { deleteEvent } from '../actions'
+import { EventForm } from './EventForm'
 
 interface EventPopupProps {
   events: Event[]
   date: Date
   onClose: () => void
+  onEventChange?: () => void
 }
 
-export function EventPopup({ events, date, onClose }: EventPopupProps) {
+export function EventPopup({ events, date, onClose, onEventChange }: EventPopupProps) {
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Delete this event?')) return
+    try {
+      await deleteEvent(eventId)
+      onEventChange?.()
+      onClose()
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+    }
+  }
+
+  if (editingEvent) {
+    return (
+      <AnimatePresence>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setEditingEvent(null)}
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-bg-primary border border-border-subtle rounded-lg shadow-lg max-w-md w-full z-10"
+          >
+            <EventForm
+              event={editingEvent}
+              onSuccess={() => {
+                setEditingEvent(null)
+                onEventChange?.()
+                onClose()
+              }}
+              onCancel={() => setEditingEvent(null)}
+            />
+          </motion.div>
+        </div>
+      </AnimatePresence>
+    )
+  }
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -82,9 +133,27 @@ export function EventPopup({ events, date, onClose }: EventPopupProps) {
                 transition={{ delay: index * 0.05 }}
                 className="p-3 bg-bg-secondary rounded border border-border-subtle"
               >
-                <h3 className="text-base font-medium text-text-primary mb-2">
-                  {event.title}
-                </h3>
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-base font-medium text-text-primary">
+                    {event.title}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setEditingEvent(event)}
+                      variant="ghost"
+                      className="text-xs"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(event.id)}
+                      variant="ghost"
+                      className="text-xs text-red-500 hover:text-red-600"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
                 <div className="space-y-1 text-sm text-text-secondary">
                   <div className="flex items-center gap-2">
                     <span className="text-text-tertiary">🕐</span>

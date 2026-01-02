@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/server'
 let pdfParse: any = null
 async function getPdfParse() {
   if (!pdfParse) {
-    pdfParse = (await import('pdf-parse')).default
+    try {
+      const pdfParseModule = await import('pdf-parse')
+      pdfParse = pdfParseModule.default || pdfParseModule
+    } catch (error) {
+      console.error('Failed to import pdf-parse:', error)
+      throw new Error('PDF parsing library not available')
+    }
   }
   return pdfParse
 }

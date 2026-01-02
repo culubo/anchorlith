@@ -21,42 +21,18 @@
   --border-subtle: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="glassmorphism"] {
-  --bg-primary: rgba(255, 255, 255, 0.7);
-  --bg-secondary: rgba(255, 255, 255, 0.5);
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --border-subtle: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* Custom background color */
+html {
+  background-color: var(--custom-bg-color, var(--bg-primary));
+  background-image: var(--custom-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
-[data-theme="glassmorphism"][data-color-mode="dark"] {
-  --bg-primary: rgba(0, 0, 0, 0.7);
-  --bg-secondary: rgba(0, 0, 0, 0.5);
-  --text-primary: #ffffff;
-  --text-secondary: #999999;
-  --text-tertiary: #666666;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="neumorphism"] {
-  --bg-primary: #e0e0e0;
-  --bg-secondary: #f5f5f5;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --border-subtle: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="neumorphism"][data-color-mode="dark"] {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #0f0f0f;
-  --text-primary: #ffffff;
-  --text-secondary: #999999;
-  --text-tertiary: #666666;
-  --border-subtle: rgba(255, 255, 255, 0.1);
+/* Custom font */
+body {
+  font-family: var(--custom-font-family, var(--font-inter), system-ui, sans-serif);
 }
 
 * {

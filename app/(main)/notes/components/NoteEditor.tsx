@@ -99,9 +99,25 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
     }
   }
 
+  // Calculate editable state before using it in useEffect
   const isEditable = !note || (note && canEditPastNotes && allowEdit)
   const isNewNote = !note
   const shouldShowPreview = isPreview || (note && !isEditable)
+
+  // Keyboard shortcut for preview toggle (Cmd/Ctrl + P)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault()
+        if (isEditable) {
+          setIsPreview(!isPreview)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [isPreview, isEditable])
 
   return (
     <div className="h-full flex flex-col">
@@ -165,13 +181,16 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
             content={body || note?.body_md || ''} 
             onToggleTodo={handleToggleTodo}
             todoStates={todoStates}
+            onContentUpdate={(newContent) => {
+              setBody(newContent)
+            }}
           />
         ) : (
           <CommandEditor
             value={body}
             onChange={setBody}
             onKeyDown={handleKeyDown}
-            placeholder="Start writing... Use /todo, /list, or /calendar commands"
+            placeholder="Start writing... Use /todo, /list, /calendar, or /image commands"
             disabled={!isEditable}
           />
         )}

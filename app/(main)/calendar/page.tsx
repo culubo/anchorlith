@@ -107,6 +107,7 @@ export default function CalendarPage() {
             setPrefilledDate(date)
             setShowForm(true)
           }}
+          onEventChange={handleEventChange}
         />
       ) : (
         <EventList onEventChange={handleEventChange} />

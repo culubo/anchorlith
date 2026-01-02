@@ -2,33 +2,52 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-type Theme = 'flat' | 'glassmorphism' | 'neumorphism'
 type ColorMode = 'light' | 'dark' | 'system'
 
+interface CustomizationSettings {
+  backgroundColor: string
+  backgroundImage: string
+  fontFamily: string
+  imageAnarchy: boolean
+}
+
 interface ThemeContextType {
-  theme: Theme
   colorMode: ColorMode
   effectiveColorMode: 'light' | 'dark'
-  setTheme: (theme: Theme) => void
+  customization: CustomizationSettings
   setColorMode: (mode: ColorMode) => void
+  setCustomization: (settings: Partial<CustomizationSettings>) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+const defaultCustomization: CustomizationSettings = {
+  backgroundColor: '',
+  backgroundImage: '',
+  fontFamily: 'system-ui',
+  imageAnarchy: false,
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('flat')
   const [colorMode, setColorModeState] = useState<ColorMode>('system')
   const [effectiveColorMode, setEffectiveColorMode] = useState<'light' | 'dark'>('light')
+  const [customization, setCustomizationState] = useState<CustomizationSettings>(defaultCustomization)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     // Load from localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme | null
     const savedColorMode = localStorage.getItem('colorMode') as ColorMode | null
+    const savedCustomization = localStorage.getItem('customization')
     
-    if (savedTheme) setThemeState(savedTheme)
     if (savedColorMode) setColorModeState(savedColorMode)
+    if (savedCustomization) {
+      try {
+        setCustomizationState({ ...defaultCustomization, ...JSON.parse(savedCustomization) })
+      } catch (e) {
+        console.error('Failed to parse customization settings', e)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -43,19 +62,41 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     setEffectiveColorMode(effective)
 
-    // Apply theme and color mode to document
-    document.documentElement.setAttribute('data-theme', theme)
+    // Apply color mode to document
     document.documentElement.setAttribute('data-color-mode', effective)
-  }, [theme, colorMode, mounted])
-
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme)
-    localStorage.setItem('theme', newTheme)
-  }
+    
+    // Apply customization
+    const root = document.documentElement
+    if (customization.backgroundColor) {
+      root.style.setProperty('--custom-bg-color', customization.backgroundColor)
+    } else {
+      root.style.removeProperty('--custom-bg-color')
+    }
+    
+    if (customization.backgroundImage) {
+      root.style.setProperty('--custom-bg-image', `url(${customization.backgroundImage})`)
+    } else {
+      root.style.removeProperty('--custom-bg-image')
+    }
+    
+    if (customization.fontFamily && customization.fontFamily !== 'system-ui') {
+      root.style.setProperty('--custom-font-family', customization.fontFamily)
+    } else {
+      root.style.removeProperty('--custom-font-family')
+    }
+    
+    root.setAttribute('data-image-anarchy', customization.imageAnarchy ? 'true' : 'false')
+  }, [colorMode, customization, mounted])
 
   const setColorMode = (mode: ColorMode) => {
     setColorModeState(mode)
     localStorage.setItem('colorMode', mode)
+  }
+
+  const setCustomization = (settings: Partial<CustomizationSettings>) => {
+    const newCustomization = { ...customization, ...settings }
+    setCustomizationState(newCustomization)
+    localStorage.setItem('customization', JSON.stringify(newCustomization))
   }
 
   // Listen for system theme changes
@@ -77,11 +118,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider
       value={{
-        theme,
         colorMode,
         effectiveColorMode,
-        setTheme,
+        customization,
         setColorMode,
+        setCustomization,
       }}
     >
       {children}

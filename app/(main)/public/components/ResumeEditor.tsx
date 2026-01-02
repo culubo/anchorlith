@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
@@ -65,6 +65,7 @@ export function ResumeEditor() {
   const [isParsing, setIsParsing] = useState(false)
   const [username, setUsername] = useState('')
   const [publicUrl, setPublicUrl] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   // Load existing resume data
@@ -120,7 +121,8 @@ export function ResumeEditor() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to parse PDF')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `Failed to parse PDF: ${response.statusText}`)
       }
 
       const extractedData = await response.json()
@@ -317,8 +319,9 @@ export function ResumeEditor() {
               Upload your PDF resume to automatically extract information
             </p>
           </div>
-          <label className="cursor-pointer">
+          <div>
             <input
+              ref={fileInputRef}
               type="file"
               accept="application/pdf"
               onChange={handlePDFUpload}
@@ -327,13 +330,14 @@ export function ResumeEditor() {
             />
             <Button
               type="button"
+              onClick={() => fileInputRef.current?.click()}
               disabled={isParsing}
               variant="ghost"
               className="text-sm"
             >
               {isParsing ? 'Parsing PDF...' : 'Upload Resume PDF'}
             </Button>
-          </label>
+          </div>
         </div>
       </div>
 

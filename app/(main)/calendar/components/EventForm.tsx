@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { createEvent } from '../actions'
+import { createEvent, updateEvent } from '../actions'
+import type { Event } from '@/lib/queries/events'
 
 interface EventFormProps {
   onSuccess: () => void
   onCancel: () => void
   prefilledDate?: Date | null
+  event?: Event | null
 }
 
-export function EventForm({ onSuccess, onCancel, prefilledDate }: EventFormProps) {
+export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFormProps) {
   // Format date for datetime-local input
   const formatDateForInput = (date: Date): string => {
     const year = date.getFullYear()
@@ -26,15 +28,36 @@ export function EventForm({ onSuccess, onCancel, prefilledDate }: EventFormProps
     if (prefilledDate) {
       return formatDateForInput(prefilledDate)
     }
+    if (event?.start_at) {
+      return formatDateForInput(new Date(event.start_at))
+    }
     return ''
   }
 
-  const [title, setTitle] = useState('')
+  const getInitialEndDate = (): string => {
+    if (event?.end_at) {
+      return formatDateForInput(new Date(event.end_at))
+    }
+    return ''
+  }
+
+  const [title, setTitle] = useState(event?.title || '')
   const [startAt, setStartAt] = useState(getInitialStartDate())
-  const [endAt, setEndAt] = useState('')
-  const [location, setLocation] = useState('')
-  const [notes, setNotes] = useState('')
+  const [endAt, setEndAt] = useState(getInitialEndDate())
+  const [location, setLocation] = useState(event?.location || '')
+  const [notes, setNotes] = useState(event?.notes || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Update form when event changes
+  useEffect(() => {
+    if (event) {
+      setTitle(event.title || '')
+      setStartAt(event.start_at ? formatDateForInput(new Date(event.start_at)) : '')
+      setEndAt(event.end_at ? formatDateForInput(new Date(event.end_at)) : '')
+      setLocation(event.location || '')
+      setNotes(event.notes || '')
+    }
+  }, [event])
 
   // Update startAt when prefilledDate changes
   useEffect(() => {
@@ -49,16 +72,29 @@ export function EventForm({ onSuccess, onCancel, prefilledDate }: EventFormProps
 
     setIsSubmitting(true)
     try {
-      await createEvent({
-        title: title.trim(),
-        start_at: new Date(startAt).toISOString(),
-        end_at: endAt ? new Date(endAt).toISOString() : undefined,
-        location: location.trim() || undefined,
-        notes: notes.trim() || undefined,
-      })
+      if (event) {
+        // Update existing event
+        await updateEvent({
+          id: event.id,
+          title: title.trim(),
+          start_at: new Date(startAt).toISOString(),
+          end_at: endAt ? new Date(endAt).toISOString() : undefined,
+          location: location.trim() || undefined,
+          notes: notes.trim() || undefined,
+        })
+      } else {
+        // Create new event
+        await createEvent({
+          title: title.trim(),
+          start_at: new Date(startAt).toISOString(),
+          end_at: endAt ? new Date(endAt).toISOString() : undefined,
+          location: location.trim() || undefined,
+          notes: notes.trim() || undefined,
+        })
+      }
       onSuccess()
     } catch (error) {
-      console.error('Failed to create event:', error)
+      console.error(`Failed to ${event ? 'update' : 'create'} event:`, error)
     } finally {
       setIsSubmitting(false)
     }
@@ -105,7 +141,7 @@ export function EventForm({ onSuccess, onCancel, prefilledDate }: EventFormProps
       </div>
       <div className="flex items-center gap-2">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Event'}
+          {isSubmitting ? (event ? 'Updating...' : 'Creating...') : (event ? 'Update Event' : 'Create Event')}
         </Button>
         <Button type="button" onClick={onCancel} variant="ghost">
           Cancel

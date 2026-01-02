@@ -41,7 +41,7 @@ export function CommandEditor({
             ? line.substring(commandStart, commandEnd)
             : line.substring(commandStart)
           
-          if (command === '/todo' || command === '/list' || command === '/calendar') {
+          if (command === '/todo' || command === '/list' || command === '/calendar' || command === '/image') {
             return {
               lineIndex: i,
               command,
@@ -64,12 +64,13 @@ export function CommandEditor({
     return (
       (trimmed.startsWith('/todo ') && trimmed.length > 6) ||
       (trimmed.startsWith('/list ') && trimmed.length > 6) ||
-      (trimmed.startsWith('/calendar ') && trimmed.length > 10)
+      (trimmed.startsWith('/calendar ') && trimmed.length > 10) ||
+      (trimmed.startsWith('/image ') && trimmed.length > 7)
     )
   }
 
   // Parse command from a line
-  const parseCommand = (line: string): { type: 'todo' | 'list' | 'calendar' | null; content: string } => {
+  const parseCommand = (line: string): { type: 'todo' | 'list' | 'calendar' | 'image' | null; content: string } => {
     const trimmed = line.trim()
     if (trimmed.startsWith('/todo ')) {
       return { type: 'todo', content: trimmed.substring(6).trim() }
@@ -79,6 +80,9 @@ export function CommandEditor({
     }
     if (trimmed.startsWith('/calendar ')) {
       return { type: 'calendar', content: trimmed.substring(10).trim() }
+    }
+    if (trimmed.startsWith('/image ')) {
+      return { type: 'image', content: trimmed.substring(7).trim() }
     }
     return { type: null, content: '' }
   }
@@ -319,6 +323,19 @@ export function CommandEditor({
           }
         } else if (trimmed.startsWith('/calendar ')) {
           const commandMatch = line.match(/^(\s*)(\/calendar\s*)(.*)$/)
+          if (commandMatch) {
+            const [, leadingSpaces, command, rest] = commandMatch
+            parts.push(
+              <span key={`line-${lineIndex}`}>
+                {leadingSpaces}
+                <span className="text-text-secondary opacity-70">{command}</span>
+                {rest}
+              </span>
+            )
+            hasCommand = true
+          }
+        } else if (trimmed.startsWith('/image ')) {
+          const commandMatch = line.match(/^(\s*)(\/image\s*)(.*)$/)
           if (commandMatch) {
             const [, leadingSpaces, command, rest] = commandMatch
             parts.push(

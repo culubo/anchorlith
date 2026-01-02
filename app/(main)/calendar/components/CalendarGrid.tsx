@@ -9,9 +9,10 @@ import { EventPopup } from './EventPopup'
 interface CalendarGridProps {
   events: Event[]
   onAddEvent?: (date: Date) => void
+  onEventChange?: () => void
 }
 
-export function CalendarGrid({ events, onAddEvent }: CalendarGridProps) {
+export function CalendarGrid({ events, onAddEvent, onEventChange }: CalendarGridProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
   const [isMobile, setIsMobile] = useState(false)
@@ -275,6 +276,7 @@ export function CalendarGrid({ events, onAddEvent }: CalendarGridProps) {
           events={getEventsForDate(selectedDate)}
           date={selectedDate}
           onClose={handleClosePopup}
+          onEventChange={onEventChange}
         />
       )}
     </div>
