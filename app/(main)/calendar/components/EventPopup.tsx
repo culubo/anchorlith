@@ -18,6 +18,25 @@ interface EventPopupProps {
 export function EventPopup({ events, date, onClose, onEventChange }: EventPopupProps) {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
+  // Prevent body scroll when popup is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
+
   const handleDelete = async (eventId: string) => {
     if (!confirm('Delete this event?')) return
     try {
@@ -63,24 +82,6 @@ export function EventPopup({ events, date, onClose, onEventChange }: EventPopupP
       </AnimatePresence>
     )
   }
-  // Close on Escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [onClose])
-
-  // Prevent body scroll when popup is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [])
   return (
     <AnimatePresence>
       <div
