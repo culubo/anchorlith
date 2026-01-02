@@ -267,8 +267,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
       </div>
 
       {/* Print styles */}
-      {/* eslint-disable-next-line react/no-unknown-property */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @media print {
           @page {
             margin: 0.5in;
@@ -294,7 +293,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
             text-decoration: none !important;
           }
         }
-      `}</style>
+      `}} />
     </div>
   )
 }

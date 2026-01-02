@@ -21,7 +21,10 @@ export default function PublicPage() {
   // Check if we're coming from an edit link
   useLayoutEffect(() => {
     if (editType && ['resume', 'portfolio', 'links'].includes(editType)) {
-      setActiveTab(editType as Tab)
+      // Use requestAnimationFrame to avoid synchronous setState in effect
+      requestAnimationFrame(() => {
+        setActiveTab(editType as Tab)
+      })
     }
   }, [editType])
 

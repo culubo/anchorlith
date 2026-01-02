@@ -48,6 +48,7 @@ export function EventPopup({ events, date, onClose, onEventChange }: EventPopupP
     }
   }
 
+  // Render edit form if editing
   if (editingEvent) {
     return (
       <AnimatePresence>
@@ -82,6 +83,8 @@ export function EventPopup({ events, date, onClose, onEventChange }: EventPopupP
       </AnimatePresence>
     )
   }
+
+  // Render event list
   return (
     <AnimatePresence>
       <div

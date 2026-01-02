@@ -35,7 +35,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useLayoutEffect(() => {
-    setMounted(true)
     // Load from localStorage
     const savedColorMode = localStorage.getItem('colorMode') as ColorMode | null
     const savedCustomization = localStorage.getItem('customization')
@@ -48,6 +47,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         console.error('Failed to parse customization settings', e)
       }
     }
+    // Use requestAnimationFrame to avoid synchronous setState
+    requestAnimationFrame(() => {
+      setMounted(true)
+    })
   }, [])
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
       : colorMode
     
-    // Use requestAnimationFrame to avoid synchronous setState in effect
+    // Update state asynchronously to avoid synchronous setState in effect
     requestAnimationFrame(() => {
       setEffectiveColorMode(effective)
     })
