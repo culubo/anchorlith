@@ -34,7 +34,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
       "react/jsx-no-target-blank": "warn",
-      "react-hooks/rules-of-hooks": "warn", // Make rules-of-hooks a warning to allow some edge cases
+      "react-hooks/rules-of-hooks": "error", // Keep as error - hooks must be called unconditionally
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/set-state-in-effect": "warn", // Allow setState in effects with warnings
       "react/no-unknown-property": ["warn", { ignore: ["jsx", "global"] }], // Allow styled-jsx, make it a warning
