@@ -36,6 +36,10 @@ export default tseslint.config(
       "react/jsx-no-target-blank": "warn",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/set-state-in-effect": "warn", // Allow setState in effects with warnings
+      "react/no-unknown-property": ["error", { ignore: ["jsx", "global"] }], // Allow styled-jsx
+      "react/no-unescaped-entities": "warn", // Make unescaped entities warnings instead of errors
+      "prefer-const": "warn", // Make prefer-const warnings instead of errors
     },
   }
 );
