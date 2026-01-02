@@ -19,7 +19,6 @@ export function EventPopup({ events, date, onClose, onEventChange }: EventPopupP
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
   // Close on Escape key
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- Hooks are always called before any conditional returns
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

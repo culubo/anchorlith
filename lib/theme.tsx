@@ -47,7 +47,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         console.error('Failed to parse customization settings', e)
       }
     }
-    setMounted(true)
+    // Use requestAnimationFrame to avoid synchronous setState
+    requestAnimationFrame(() => {
+      setMounted(true)
+    })
   }, [])
 
   useEffect(() => {
@@ -59,7 +62,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       : colorMode
     
     // Update state asynchronously to avoid synchronous setState in effect
-    Promise.resolve().then(() => {
+    requestAnimationFrame(() => {
       setEffectiveColorMode(effective)
     })
 

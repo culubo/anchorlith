@@ -21,10 +21,10 @@ export default function PublicPage() {
   // Check if we're coming from an edit link
   useLayoutEffect(() => {
     if (editType && ['resume', 'portfolio', 'links'].includes(editType)) {
-      // Use setTimeout to avoid synchronous setState in effect
-      setTimeout(() => {
+      // Use requestAnimationFrame to avoid synchronous setState in effect
+      requestAnimationFrame(() => {
         setActiveTab(editType as Tab)
-      }, 0)
+      })
     }
   }, [editType])
 
