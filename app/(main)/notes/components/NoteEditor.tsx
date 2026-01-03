@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { createNote, updateNote, deleteNote } from '../actions'
-import { motion } from 'framer-motion'
-import type { Note } from '@/lib/queries/notes'
+import type { Note } from '@/lib/queries/notes' 
 
 interface NoteEditorProps {
   note: Note | null

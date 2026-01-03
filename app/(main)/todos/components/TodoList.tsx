@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { createTodo } from '../actions'
 import type { Todo } from '@/lib/queries/todos'
 import { isDateToday } from '@/lib/utils/date'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion' 
 
 export function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([])

@@ -14,7 +14,6 @@ interface CalendarGridProps {
 
 export function CalendarGrid({ events, onAddEvent, onEventChange }: CalendarGridProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
   const [isMobile, setIsMobile] = useState(false)
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

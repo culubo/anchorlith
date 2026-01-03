@@ -19,7 +19,7 @@ export function CommandEditor({
   disabled,
 }: CommandEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [cursorPosition, setCursorPosition] = useState(0)
+  const [, setCursorPosition] = useState(0)
   const [convertedLines, setConvertedLines] = useState<Set<number>>(new Set())
 
   // Detect command at cursor position
@@ -278,7 +278,7 @@ export function CommandEditor({
             if (!isNaN(date.getTime())) {
               displayDate = formatDate(date.toISOString())
             }
-          } catch (e) {
+          } catch {
             // Use as-is if parsing fails
           }
           parts.push(

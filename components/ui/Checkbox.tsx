@@ -9,7 +9,7 @@ interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'typ
 
 export function Checkbox({ label, className = '', ...props }: CheckboxProps) {
   const checkbox = (
-    <label className="flex items-center gap-2 cursor-pointer group">
+    <label className={`flex items-center gap-2 cursor-pointer group ${className}`}>
       <input
         type="checkbox"
         {...props}

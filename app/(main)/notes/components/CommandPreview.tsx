@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { Checkbox } from '@/components/ui/Checkbox'
+import { Checkbox } from '@/components/ui/Checkbox' 
 import { formatDate } from '@/lib/utils/date'
 import { DraggableImage } from '@/components/DraggableImage'
 
@@ -165,7 +164,7 @@ export function CommandPreview({
             if (!isNaN(date.getTime())) {
               displayDate = formatDate(date.toISOString())
             }
-          } catch (e) {
+          } catch {
             // Use as-is if parsing fails
           }
           return (

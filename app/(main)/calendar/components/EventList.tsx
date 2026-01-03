@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { Event } from '@/lib/queries/events'
-import { formatDate, formatTime, formatDateTime } from '@/lib/utils/date'
+import { formatDate, formatTime } from '@/lib/utils/date'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { deleteEvent } from '../actions'
