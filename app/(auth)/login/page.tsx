@@ -93,7 +93,10 @@ export default function LoginPage() {
       } else {
         // Password mode: either sign in or create account
         if (createAccount) {
-          const { data, error } = await supabase.auth.signUp({ email, password })
+          const { data, error } = await supabase.auth.signUp(
+            { email, password },
+            { redirectTo: `${siteUrl}/auth/callback` }
+          )
           if (error) {
             setMessage(`Error: ${error.message}`)
             setLoading(false)
