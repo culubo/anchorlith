@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const [mode, setMode] = useState<'magic' | 'password'>('magic')
   const [password, setPassword] = useState('')
+  const [createAccount, setCreateAccount] = useState(false)
   
   // Check if Supabase is configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -85,14 +86,30 @@ export default function LoginPage() {
           setLoading(false)
         }
       } else {
-        // Classic password sign-in
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) {
-          setMessage(`Error: ${error.message}`)
-          setLoading(false)
+        // Password mode: either sign in or create account
+        if (createAccount) {
+          const { data, error } = await supabase.auth.signUp({ email, password })
+          if (error) {
+            setMessage(`Error: ${error.message}`)
+            setLoading(false)
+          } else {
+            // If an immediate session was created (emailless or auto-confirm), redirect; otherwise prompt to confirm
+            if ((data as any)?.session) {
+              window.location.href = '/today'
+            } else {
+              setMessage('Account created. Check your email to confirm your account before signing in.')
+              setLoading(false)
+            }
+          }
         } else {
-          // Successful sign-in - redirect to app
-          window.location.href = '/today'
+          const { error } = await supabase.auth.signInWithPassword({ email, password })
+          if (error) {
+            setMessage(`Error: ${error.message}`)
+            setLoading(false)
+          } else {
+            // Successful sign-in - redirect to app
+            window.location.href = '/today'
+          }
         }
       }
     } catch (err: unknown) {
@@ -162,6 +179,14 @@ export default function LoginPage() {
                 placeholder="Your password"
                 disabled={loading}
               />
+
+              <div className="mt-2">
+                <Checkbox
+                  checked={createAccount}
+                  onChange={(e) => setCreateAccount(e.target.checked)}
+                  label="Create account"
+                />
+              </div>
             </div>
           )}
 
@@ -178,7 +203,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-2 text-text-primary hover:text-text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (mode === 'magic' ? 'Sending...' : 'Signing in...') : (mode === 'magic' ? 'Send magic link' : 'Sign in')}
+            {loading ? (mode === 'magic' ? 'Sending...' : (createAccount ? 'Creating...' : 'Signing in...')) : (mode === 'magic' ? 'Send magic link' : (createAccount ? 'Create account' : 'Sign in'))}
           </button>
 
           {message && (
