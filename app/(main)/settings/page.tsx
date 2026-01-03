@@ -1,6 +1,7 @@
 'use client'
 
 import { ThemeSelector } from './components/ThemeSelector'
+import PredictiveWritingToggle from './components/PredictiveWritingToggle'
 import { ExportButton } from './components/ExportButton'
 import { Divider } from '@/components/ui/Divider'
 
@@ -53,6 +54,8 @@ export default function SettingsPage() {
         <Divider />
 
         <ThemeSelector />
+        <Divider />
+        <PredictiveWritingToggle />
         <Divider />
         <ExportButton />
       </div>

@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { createNote, updateNote, deleteNote } from '../actions'
-import type { Note } from '@/lib/queries/notes' 
+import type { Note } from '@/lib/queries/notes'
+import TableEditor from './TableEditor'
+import DrawingPad from './DrawingPad'
+import { parseCSVToMarkdownTable, parseICSToList } from '@/lib/importers'
 
 interface NoteEditorProps {
   note: Note | null
@@ -22,6 +25,13 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
   const [isSaving, setIsSaving] = useState(false)
   const [canEditPastNotes, setCanEditPastNotes] = useState(true)
   const [todoStates, setTodoStates] = useState<Record<number, boolean>>({})
+  const [showTableEditor, setShowTableEditor] = useState(false)
+  const [showDrawingPad, setShowDrawingPad] = useState(false)
+
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [showAISuggestion, setShowAISuggestion] = useState(false)
 
   useEffect(() => {
     if (note) {
@@ -175,6 +185,92 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        <div className="mb-3 flex items-center gap-2"> 
+          {aiError && (
+            <div className="text-sm text-red-500">{aiError}</div>
+          )}
+          {showAISuggestion && aiSuggestion && (
+            <div className="w-full p-3 border border-border-subtle rounded bg-bg-elevated mt-2">
+              <div className="prose max-w-none text-sm text-text-primary whitespace-pre-wrap">{aiSuggestion}</div>
+              <div className="mt-3 flex gap-2">
+                <Button onClick={() => { setBody(prev => prev + '\n\n' + aiSuggestion); setShowAISuggestion(false); setAiSuggestion(null) }} className="text-sm">Insert</Button>
+                <Button onClick={() => { setBody(aiSuggestion || ''); setShowAISuggestion(false); setAiSuggestion(null) }} className="text-sm">Replace</Button>
+                <Button onClick={() => { setShowAISuggestion(false); setAiSuggestion(null) }} variant="ghost" className="text-sm">Close</Button>
+              </div>
+            </div>
+          )}
+
+          <Button onClick={() => setShowTableEditor(true)} variant="ghost" className="text-sm">Insert Table</Button>
+          <Button onClick={() => setShowDrawingPad(true)} variant="ghost" className="text-sm">Insert Drawing</Button>
+
+          <Button
+            onClick={async () => {
+              // Check opt-in
+              const enabled = typeof window !== 'undefined' && localStorage.getItem('predictiveWritingOptIn') === 'true'
+              if (!enabled) {
+                if (!confirm('Predictive writing is disabled. Enable it in Settings?')) return
+                try { localStorage.setItem('predictiveWritingOptIn', 'true') } catch (e) {}
+              }
+
+              // Fetch suggestion
+              setAiLoading(true)
+              setAiError(null)
+              try {
+                const resp = await fetch('/api/ai/suggest', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ context: body || note?.body_md || '', instructions: 'Continue the note in a concise, helpful way. Return only the suggested content without commentary.' }),
+                })
+
+                if (resp.status === 501) {
+                  setAiError('Server not configured for AI suggestions (OPENAI_API_KEY missing)')
+                  setAiLoading(false)
+                  return
+                }
+
+                if (!resp.ok) {
+                  const txt = await resp.text()
+                  setAiError('Failed to get suggestion: ' + txt)
+                  setAiLoading(false)
+                  return
+                }
+
+                const json = await resp.json()
+                setAiSuggestion(typeof json.suggestion === 'string' ? json.suggestion : '')
+                setShowAISuggestion(true)
+              } catch (err: any) {
+                setAiError(err?.message || 'Unknown error')
+              } finally {
+                setAiLoading(false)
+              }
+            }}
+            variant="ghost"
+            className="text-sm"
+            disabled={!isEditable}
+          >
+            {aiLoading ? 'Suggesting…' : 'Get suggestion'}
+          </Button>
+
+          <label className="flex items-center gap-2 text-sm ml-auto">
+            <span className="text-text-secondary">Import</span>
+            <input type="file" accept="text/csv,text/plain,text/calendar" onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const text = await file.text()
+              if (file.type === 'text/csv') {
+                const md = parseCSVToMarkdownTable(text)
+                setBody(prev => prev + '\n\n' + md)
+              } else if (file.type === 'text/calendar' || file.name.endsWith('.ics')) {
+                const list = parseICSToList(text)
+                setBody(prev => prev + '\n\n' + list)
+              } else {
+                // fallback - append raw text as a code block
+                setBody(prev => `${prev}\n\n\`\`\`\n${text}\n\`\`\``)
+              }
+            }} />
+          </label>
+        </div>
+
         {shouldShowPreview ? (
           <CommandPreview 
             content={body || note?.body_md || ''} 
@@ -194,6 +290,22 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
           />
         )}
       </div>
+
+      {showTableEditor && (
+        <div className="fixed inset-0 flex items-start justify-center p-4">
+          <div className="bg-bg-primary border border-border-subtle rounded w-full max-w-2xl p-4 z-50">
+            <TableEditor onSave={(md) => { setBody(prev => prev + '\n\n' + md); setShowTableEditor(false) }} onClose={() => setShowTableEditor(false)} />
+          </div>
+        </div>
+      )}
+
+      {showDrawingPad && (
+        <div className="fixed inset-0 flex items-start justify-center p-4">
+          <div className="bg-bg-primary border border-border-subtle rounded w-full max-w-2xl p-4 z-50">
+            <DrawingPad onSave={(dataUrl) => { setBody(prev => prev + '\n\n' + `![](${dataUrl})`); setShowDrawingPad(false) }} onClose={() => setShowDrawingPad(false)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

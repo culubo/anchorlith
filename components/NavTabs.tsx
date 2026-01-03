@@ -11,6 +11,7 @@ const tabs = [
   { href: '/todos', label: 'Todos' },
   { href: '/reminders', label: 'Reminders' },
   { href: '/public', label: 'Public' },
+  { href: '/piggybank', label: 'Piggybank' },
   { href: '/settings', label: 'Settings' },
 ]
 
