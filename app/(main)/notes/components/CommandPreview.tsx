@@ -164,7 +164,7 @@ export function CommandPreview({
             if (!isNaN(date.getTime())) {
               displayDate = formatDate(date.toISOString())
             }
-          } catch (e) {
+          } catch {
             // Use as-is if parsing fails
           }
           return (

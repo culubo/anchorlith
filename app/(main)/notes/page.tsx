@@ -21,7 +21,7 @@ export default function NotesPage() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
-  const [allowEdit, setAllowEdit] = useState(true)
+  const allowEdit = true
   const [showEditor, setShowEditor] = useState(false)
 
   const loadNotes = async () => {
