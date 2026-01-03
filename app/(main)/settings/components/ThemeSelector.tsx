@@ -20,8 +20,7 @@ const FONTS = [
 export function ThemeSelector() {
   const { colorMode, customization, setColorMode, setCustomization } = useTheme()
   const [bgColor, setBgColor] = useState(customization.backgroundColor)
-  const [bgImageUrl, setBgImageUrl] = useState(customization.backgroundImage)
-  const supabase = createClient()
+  const [bgImageUrl, setBgImageUrl] = useState(customization.backgroundImage) 
 
   const handleBgColorChange = (color: string) => {
     setBgColor(color)

@@ -8,7 +8,7 @@ import { Loading } from './ui/Loading'
 interface FileUploadProps {
   linkedType: 'note' | 'event' | 'todo' | 'portfolio'
   linkedId?: string
-  onUploadComplete?: (file: unknown) => void
+  onUploadComplete?: (file: any) => void
   accept?: string
 }
 

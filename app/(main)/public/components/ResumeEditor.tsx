@@ -254,7 +254,7 @@ export function ResumeEditor() {
     })
   }
 
-  const updateExperience = (index: number, field: string, value: string | string[]) => {
+  const updateExperience = (index: number, field: string, value: string | string[] | boolean) => {
     const updated = [...(data.experience || [])]
     updated[index] = { ...updated[index], [field]: value }
     setData({ ...data, experience: updated })
@@ -277,7 +277,7 @@ export function ResumeEditor() {
     })
   }
 
-  const updateEducation = (index: number, field: string, value: string) => {
+  const updateEducation = (index: number, field: string, value: string | string[]) => {
     const updated = [...(data.education || [])]
     updated[index] = { ...updated[index], [field]: value }
     setData({ ...data, education: updated })

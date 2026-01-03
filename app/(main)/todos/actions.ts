@@ -39,7 +39,7 @@ export async function updateTodo(input: UpdateTodoInput) {
 
   if (!user) throw new Error('Not authenticated')
 
-  const updateData: any = {}
+  const updateData: Partial<Record<string, unknown>> = {}
   if (input.title !== undefined) updateData.title = input.title
   if (input.due_at !== undefined) updateData.due_at = input.due_at
   if (input.status !== undefined) updateData.status = input.status

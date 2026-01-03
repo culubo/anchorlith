@@ -16,6 +16,46 @@ export interface Reminder {
   updated_at: string
 }
 
+// Normalize a raw row (Record<string, unknown>) from the DB into a typed Reminder
+function normalizeReminder(row: Record<string, unknown>): Reminder {
+  const id = String(row['id'] ?? '')
+  const user_id = String(row['user_id'] ?? '')
+  const title = String(row['title'] ?? '')
+  const remind_at = String(row['remind_at'] ?? '')
+
+  const rawRepeatType = row['repeat_type']
+  const repeat_type = rawRepeatType === null || rawRepeatType === undefined
+    ? null
+    : (rawRepeatType === 'daily' || rawRepeatType === 'weekly' || rawRepeatType === 'monthly' || rawRepeatType === 'yearly'
+      ? (rawRepeatType as 'daily' | 'weekly' | 'monthly' | 'yearly')
+      : null)
+
+  const repeat_interval = Number(row['repeat_interval'] ?? 1)
+  const repeat_end_date = row['repeat_end_date'] == null ? null : String(row['repeat_end_date'])
+  const repeat_count = row['repeat_count'] == null ? null : Number(row['repeat_count'])
+  const event_id = row['event_id'] == null ? null : String(row['event_id'])
+  const is_completed = Boolean(row['is_completed'] ?? false)
+  const last_reminded_at = row['last_reminded_at'] == null ? null : String(row['last_reminded_at'])
+  const created_at = String(row['created_at'] ?? '')
+  const updated_at = String(row['updated_at'] ?? '')
+
+  return {
+    id,
+    user_id,
+    title,
+    remind_at,
+    repeat_type,
+    repeat_interval,
+    repeat_end_date,
+    repeat_count,
+    event_id,
+    is_completed,
+    last_reminded_at,
+    created_at,
+    updated_at,
+  }
+}
+
 export async function getReminders() {
   const supabase = await createClient()
   const {
@@ -44,16 +84,7 @@ export async function getReminders() {
     if (errorWithoutFilter) throw errorWithoutFilter
 
     // Map to new format with defaults
-    return (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => ({
-      ...(reminder as Reminder),
-      repeat_type: null,
-      repeat_interval: 1,
-      repeat_end_date: null,
-      repeat_count: null,
-      event_id: null,
-      is_completed: false,
-      last_reminded_at: null,
-    })) as Reminder[]
+    return (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => normalizeReminder(reminder)) as Reminder[]
   }
 
   if (error) throw error
@@ -95,16 +126,7 @@ export async function getRemindersByDate(date: Date) {
     if (errorWithoutFilter) throw errorWithoutFilter
 
     // Map to new format with defaults
-    reminders = (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => ({
-      ...(reminder as Reminder),
-      repeat_type: null,
-      repeat_interval: 1,
-      repeat_end_date: null,
-      repeat_count: null,
-      event_id: null,
-      is_completed: false,
-      last_reminded_at: null,
-    })) as Reminder[]
+    reminders = (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => normalizeReminder(reminder)) as Reminder[]
   } else {
     if (error) throw error
     reminders = allReminders as Reminder[]

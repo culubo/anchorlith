@@ -37,7 +37,7 @@ export async function updateNote(input: UpdateNoteInput) {
 
   if (!user) throw new Error('Not authenticated')
 
-  const updateData: any = {}
+  const updateData: Partial<Record<string, unknown>> = {}
   if (input.title !== undefined) updateData.title = input.title
   if (input.body_md !== undefined) updateData.body_md = input.body_md
   if (input.tags !== undefined) updateData.tags = input.tags

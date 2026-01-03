@@ -227,7 +227,7 @@ export function PortfolioEditor() {
               <div className="space-y-2">
                 <FileUpload
                   linkedType="portfolio"
-                  onUploadComplete={(file) => handleImageUpload(index, file)}
+                  onUploadComplete={(file: any) => handleImageUpload(index, file as { publicUrl?: string })}
                   accept="image/*"
                 />
                 {project.imageUrl && (

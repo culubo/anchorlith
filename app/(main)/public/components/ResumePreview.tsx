@@ -267,8 +267,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
       </div>
 
       {/* Print styles */}
-      { }
-      <style dangerouslySetInnerHTML={{__html: `
+      <style>{`
         @media print {
           @page {
             margin: 0.5in;
@@ -294,7 +293,7 @@ export function ResumePreview({ data, onClose }: ResumePreviewProps) {
             text-decoration: none !important;
           }
         }
-      `}} />
+      `}</style>
     </div>
   )
 }
