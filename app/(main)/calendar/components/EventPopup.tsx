@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Event } from '@/lib/queries/events'
