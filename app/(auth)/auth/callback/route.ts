@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
           getAll() {
             return request.cookies.getAll()
           },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: unknown }>) {
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options as any)
           })
         },
         },

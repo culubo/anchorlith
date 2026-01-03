@@ -21,7 +21,7 @@ export default async function PublicPage({ params }: PageProps) {
     notFound()
   }
 
-  const content = page.content_json
+  const content = page.content_json as any
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
