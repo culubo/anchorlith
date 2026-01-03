@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 import { Checkbox } from '@/components/ui/Checkbox'
@@ -129,10 +130,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-primary">
       <div className="w-full max-w-md px-6">
-        <h1 className="text-2xl mb-2 text-text-primary">AnchorLith</h1>
-        <p className="text-sm text-text-secondary mb-4">
-          Sign in with your email
-        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <Image src="/logo.png" alt="AnchorLith" width={40} height={40} className="rounded" />
+          <div>
+            <h1 className="text-2xl mb-0 text-text-primary">AnchorLith</h1>
+            <p className="text-sm text-text-secondary">Sign in with your email</p>
+          </div>
+        </div>
 
         <div className="flex gap-2 mb-4">
           <div className="px-3 py-1 rounded bg-yellow-100 border border-yellow-200 text-yellow-800 text-sm">Deprecated: Magic link will be removed soon</div>
