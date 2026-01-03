@@ -19,7 +19,7 @@ export default function ClientPublicPage() {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 
   // Check if we're coming from an edit link
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useLayoutEffect(() => {
     if (editType && ['resume', 'portfolio', 'links'].includes(editType)) {
       // Use requestAnimationFrame to avoid synchronous setState in effect

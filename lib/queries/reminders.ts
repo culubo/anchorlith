@@ -164,7 +164,7 @@ function calculateNextOccurrence(
 ): boolean {
   if (endDate && endDate < checkStart) return false
 
-  let current = new Date(startDate)
+  const current = new Date(startDate)
   const checkDate = new Date(checkStart)
   checkDate.setHours(0, 0, 0, 0)
 

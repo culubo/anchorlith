@@ -1,42 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createRequire } from 'module'
-
-// Force Node.js runtime for this route (required for pdf-parse)
-export const runtime = 'nodejs'
 
 // Dynamic import for pdf-parse (works better with Next.js)
 let pdfParse: any = null
 async function getPdfParse() {
   if (!pdfParse) {
     try {
-      // Use createRequire for better compatibility with CommonJS modules
-      // This works better with native dependencies in Next.js
-      const require = createRequire(import.meta.url)
-      const pdfParseModule = require('pdf-parse')
+      const pdfParseModule = (await import('pdf-parse')) as any
       pdfParse = pdfParseModule.default || pdfParseModule
-      
-      // Verify it's actually a function
-      if (typeof pdfParse !== 'function') {
-        throw new Error('pdf-parse module is not a function')
-      }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to import pdf-parse:', error)
-      // Provide more detailed error message
-      const errorMessage = error?.message || 'Unknown error'
-      const errorStack = error?.stack || ''
-      
-      // Check if it's a module resolution error
-      if (errorMessage.includes('Cannot find module') || errorMessage.includes('MODULE_NOT_FOUND')) {
-        throw new Error('PDF parsing library not installed. Please run: npm install pdf-parse')
-      }
-      
-      // Check if it's a native dependency issue
-      if (errorMessage.includes('native') || errorStack.includes('node-gyp')) {
-        throw new Error('PDF parsing library native dependencies not available. Please rebuild: npm rebuild pdf-parse')
-      }
-      
-      throw new Error(`PDF parsing library not available: ${errorMessage}`)
+      throw new Error('PDF parsing library not available')
     }
   }
   return pdfParse

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Quick script to verify Supabase connection
 // Run with: node scripts/verify-supabase.js
 
