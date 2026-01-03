@@ -14,3 +14,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_public_pages_username_type
   ON public_pages(username, type) 
   WHERE username IS NOT NULL;
 
+

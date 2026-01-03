@@ -188,12 +188,17 @@ export function ResumeEditor() {
       const slug = `${username}-resume`
 
       // Check if resume exists
-      const { data: existing } = await supabase
+      const { data: existing, error: queryError } = await supabase
         .from('public_pages')
         .select('id')
         .eq('user_id', user.id)
         .eq('type', 'resume')
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to avoid errors when no record exists
+
+      // If there's a query error that's not "no rows returned", throw it
+      if (queryError && queryError.code !== 'PGRST116') {
+        throw queryError
+      }
 
       const updateData: any = {
         user_id: user.id,
@@ -220,13 +225,19 @@ export function ResumeEditor() {
         error = insertError
       }
 
-      if (error) throw error
+      if (error) {
+        // Supabase errors have a message property
+        const errorMessage = error.message || error.details || error.hint || 'Unknown error'
+        throw new Error(errorMessage)
+      }
 
       setPublicUrl(`/p/${username.trim().toLowerCase()}/resume`)
       alert('Resume saved! Your public URL will be available when the app is hosted.')
     } catch (error: any) {
       console.error('Failed to save resume:', error)
-      alert(`Failed to save resume: ${error.message}`)
+      // Extract error message properly from various error types
+      const errorMessage = error?.message || error?.details || error?.hint || 'Unknown error occurred'
+      alert(`Failed to save resume: ${errorMessage}`)
     } finally {
       setIsSaving(false)
     }

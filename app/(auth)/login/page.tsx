@@ -50,10 +50,16 @@ export default function LoginPage() {
       // Store preference for session persistence
       localStorage.setItem('stayLoggedIn', stayLoggedIn.toString())
       
+      // Get the site URL for the magic link redirect
+      // In production (Vercel), set NEXT_PUBLIC_SITE_URL environment variable to your domain
+      // In development, this will use window.location.origin (localhost:3000)
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      const redirectUrl = `${siteUrl}/auth/callback`
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl,
           shouldCreateUser: true,
         },
       })

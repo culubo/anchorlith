@@ -38,6 +38,7 @@ npm install
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com  # Optional: Set this in production (Vercel) to fix magic link redirects
 ```
 
 ### 3. Run Database Migrations
@@ -93,6 +94,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon/public key
+- `NEXT_PUBLIC_SITE_URL`: (Optional) Your production site URL (e.g., `https://yourdomain.vercel.app`). Required for magic link authentication to work correctly in production. If not set, it will use `window.location.origin` which may not work correctly when clicking links from email.
 
 ## License
 
