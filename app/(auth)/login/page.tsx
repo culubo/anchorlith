@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [stayLoggedIn, setStayLoggedIn] = useState(true)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [mode, setMode] = useState<'magic' | 'password'>('magic')
+  const [password, setPassword] = useState('')
   
   // Check if Supabase is configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -48,27 +50,50 @@ export default function LoginPage() {
     try {
       // Store preference for session persistence
       localStorage.setItem('stayLoggedIn', stayLoggedIn.toString())
-      
-      // Get the site URL for the magic link redirect
-      // In production (Vercel), set NEXT_PUBLIC_SITE_URL environment variable to your domain
-      // In development, this will use window.location.origin (localhost:3000)
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const redirectUrl = `${siteUrl}/auth/callback`
-      
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: redirectUrl,
-          shouldCreateUser: true,
-        },
-      })
 
-      if (error) {
-        setMessage(`Error: ${error.message}`)
-        setLoading(false)
+      // Resolve site URL safely. In production we require NEXT_PUBLIC_SITE_URL to be set and not point to localhost.
+      const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+      let siteUrl: string
+
+      if (process.env.NODE_ENV === 'production') {
+        if (!envSiteUrl || envSiteUrl.includes('localhost') || envSiteUrl.includes('127.0.0.1')) {
+          setMessage('Invalid or missing NEXT_PUBLIC_SITE_URL in production. Please configure it with your site domain.')
+          setLoading(false)
+          return
+        }
+        siteUrl = envSiteUrl
       } else {
-        setMessage('Check your email for the magic link!')
-        setLoading(false)
+        siteUrl = envSiteUrl || window.location.origin
+      }
+
+      if (mode === 'magic') {
+        const redirectUrl = `${siteUrl}/auth/callback`
+
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: redirectUrl,
+            shouldCreateUser: true,
+          },
+        })
+
+        if (error) {
+          setMessage(`Error: ${error.message}`)
+          setLoading(false)
+        } else {
+          setMessage('Check your email for the magic link!')
+          setLoading(false)
+        }
+      } else {
+        // Classic password sign-in
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+          setMessage(`Error: ${error.message}`)
+          setLoading(false)
+        } else {
+          // Successful sign-in - redirect to app
+          window.location.href = '/today'
+        }
       }
     } catch (err: unknown) {
       console.error('Login error:', err)
@@ -86,9 +111,24 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-bg-primary">
       <div className="w-full max-w-md px-6">
         <h1 className="text-2xl mb-2 text-text-primary">AnchorLith</h1>
-        <p className="text-sm text-text-secondary mb-8">
+        <p className="text-sm text-text-secondary mb-4">
           Sign in with your email
         </p>
+
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setMode('magic')}
+            className={`px-3 py-1 rounded ${mode === 'magic' ? 'bg-accent text-white' : 'bg-transparent text-text-secondary border border-border-subtle'}`}>
+            Magic Link
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('password')}
+            className={`px-3 py-1 rounded ${mode === 'password' ? 'bg-accent text-white' : 'bg-transparent text-text-secondary border border-border-subtle'}`}>
+            Password
+          </button>
+        </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
@@ -107,6 +147,24 @@ export default function LoginPage() {
             />
           </div>
 
+          {mode === 'password' && (
+            <div>
+              <label htmlFor="password" className="block text-sm text-text-secondary mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-0 py-2 bg-transparent border-0 border-b border-border-subtle text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-text-primary transition-colors"
+                placeholder="Your password"
+                disabled={loading}
+              />
+            </div>
+          )}
+
           <div className="flex items-center">
             <Checkbox
               checked={stayLoggedIn}
@@ -120,7 +178,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-2 text-text-primary hover:text-text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Sending...' : 'Send magic link'}
+            {loading ? (mode === 'magic' ? 'Sending...' : 'Signing in...') : (mode === 'magic' ? 'Send magic link' : 'Sign in')}
           </button>
 
           {message && (
