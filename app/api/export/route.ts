@@ -10,9 +10,10 @@ export async function GET() {
         'Content-Disposition': `attachment; filename="anchorlith-export-${new Date().toISOString().split('T')[0]}.json"`,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
-      { error: error.message || 'Failed to export data' },
+      { error: message || 'Failed to export data' },
       { status: 500 }
     )
   }

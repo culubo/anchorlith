@@ -65,8 +65,9 @@ export async function POST(request: Request) {
       ...fileRecord,
       publicUrl,
     })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

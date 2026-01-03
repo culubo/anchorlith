@@ -7,7 +7,7 @@ export interface PublicPage {
   slug: string
   username: string | null
   visibility: 'private' | 'unlisted' | 'public'
-  content_json: any
+  content_json: unknown
   updated_at: string
 }
 

@@ -52,8 +52,9 @@ export function PortfolioEditor() {
           const emailUsername = user.email?.split('@')[0] || 'user'
           setUsername(emailUsername.toLowerCase().replace(/[^a-z0-9]/g, ''))
         }
-      } catch (error) {
-        console.error('Failed to load portfolio:', error)
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error)
+        console.error('Failed to load portfolio:', message)
       }
     }
     loadPortfolio()
@@ -76,7 +77,7 @@ export function PortfolioEditor() {
     }))
   }
 
-  const handleImageUpload = (index: number, file: any) => {
+  const handleImageUpload = (index: number, file: { publicUrl?: string }) => {
     if (file.publicUrl) {
       updateProject(index, 'imageUrl', file.publicUrl)
     }

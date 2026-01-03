@@ -70,12 +70,13 @@ export default function LoginPage() {
         setMessage('Check your email for the magic link!')
         setLoading(false)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err)
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('ERR_NAME_NOT_RESOLVED')) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes('Failed to fetch') || message.includes('ERR_NAME_NOT_RESOLVED')) {
         setMessage('Cannot connect to Supabase. Please verify your Supabase project URL in .env.local is correct and the project is active.')
       } else {
-        setMessage(`Failed to connect: ${err.message || 'Please check your connection and try again'}`)
+        setMessage(`Failed to connect: ${message || 'Please check your connection and try again'}`)
       }
       setLoading(false)
     }

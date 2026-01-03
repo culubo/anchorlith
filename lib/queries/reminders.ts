@@ -44,8 +44,8 @@ export async function getReminders() {
     if (errorWithoutFilter) throw errorWithoutFilter
 
     // Map to new format with defaults
-    return (dataWithoutFilter || []).map((reminder: any) => ({
-      ...reminder,
+    return (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => ({
+      ...(reminder as Reminder),
       repeat_type: null,
       repeat_interval: 1,
       repeat_end_date: null,
@@ -95,8 +95,8 @@ export async function getRemindersByDate(date: Date) {
     if (errorWithoutFilter) throw errorWithoutFilter
 
     // Map to new format with defaults
-    reminders = (dataWithoutFilter || []).map((reminder: any) => ({
-      ...reminder,
+    reminders = (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => ({
+      ...(reminder as Reminder),
       repeat_type: null,
       repeat_interval: 1,
       repeat_end_date: null,
