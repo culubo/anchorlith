@@ -58,7 +58,9 @@ export default function LoginPage() {
 
       if (process.env.NODE_ENV === 'production') {
         if (!envSiteUrl || envSiteUrl.includes('localhost') || envSiteUrl.includes('127.0.0.1')) {
-          setMessage('Invalid or missing NEXT_PUBLIC_SITE_URL in production. Please configure it with your site domain.')
+          setMessage(
+            "Invalid or missing NEXT_PUBLIC_SITE_URL in production. Set NEXT_PUBLIC_SITE_URL to your site domain (e.g. https://example.com) in your hosting provider (e.g., Vercel), and add https://<your-domain>/auth/callback to Supabase Auth → Redirect URLs. See: https://supabase.com/docs/guides/auth/redirects"
+          )
           setLoading(false)
           return
         }
