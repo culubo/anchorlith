@@ -33,7 +33,7 @@ export function ThemeSelector() {
     setCustomization({ backgroundImage: url })
   }
 
-  const handleImageUpload = async (file: any) => {
+  const handleImageUpload = async (file: { publicUrl?: string }) => {
     if (file.publicUrl) {
       setBgImageUrl(file.publicUrl)
       setCustomization({ backgroundImage: file.publicUrl })

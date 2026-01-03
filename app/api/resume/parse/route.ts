@@ -52,9 +52,10 @@ export async function POST(request: Request) {
     const extractedData = extractResumeData(text)
 
     return NextResponse.json(extractedData)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('PDF parsing error:', error)
-    return NextResponse.json({ error: error.message || 'Failed to parse PDF' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: message || 'Failed to parse PDF' }, { status: 500 })
   }
 }
 

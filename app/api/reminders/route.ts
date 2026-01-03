@@ -36,8 +36,8 @@ export async function GET() {
       }
 
       // Map old format to new format with defaults
-      const mappedData = (dataWithoutFilter || []).map((reminder: any) => ({
-        ...reminder,
+      const mappedData = (dataWithoutFilter || []).map((reminder: Record<string, unknown>) => ({
+        ...(reminder as Record<string, unknown>),
         repeat_type: null,
         repeat_interval: 1,
         repeat_end_date: null,
@@ -55,8 +55,9 @@ export async function GET() {
     }
 
     return NextResponse.json(data)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

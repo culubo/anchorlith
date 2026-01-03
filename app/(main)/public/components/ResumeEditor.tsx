@@ -161,9 +161,10 @@ export function ResumeEditor() {
       } else {
         alert('PDF uploaded but could not extract structured data. Please fill in the form manually.')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to parse PDF:', error)
-      alert(`Failed to parse PDF: ${error.message}`)
+      const message = error instanceof Error ? error.message : String(error)
+      alert(`Failed to parse PDF: ${message}`)
     } finally {
       setIsParsing(false)
       e.target.value = '' // Reset input
@@ -233,10 +234,10 @@ export function ResumeEditor() {
 
       setPublicUrl(`/p/${username.trim().toLowerCase()}/resume`)
       alert('Resume saved! Your public URL will be available when the app is hosted.')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save resume:', error)
-      // Extract error message properly from various error types
-      const errorMessage = error?.message || error?.details || error?.hint || 'Unknown error occurred'
+      const err = error as any
+      const errorMessage = err?.message || err?.details || err?.hint || 'Unknown error'
       alert(`Failed to save resume: ${errorMessage}`)
     } finally {
       setIsSaving(false)
