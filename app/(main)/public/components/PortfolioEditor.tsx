@@ -232,6 +232,7 @@ export function PortfolioEditor() {
                 />
                 {project.imageUrl && (
                   <div className="mt-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={project.imageUrl}
                       alt="Preview"
@@ -258,6 +259,7 @@ export function PortfolioEditor() {
                 />
                 {project.imageUrl && (
                   <div className="mt-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={project.imageUrl}
                       alt="Preview"

@@ -221,6 +221,7 @@ export default async function PublicPage({ params }: PageProps) {
               {content.projects.map((project: any, index: number) => (
                 <div key={index} className="space-y-3">
                   {project.imageUrl && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={project.imageUrl}
                       alt={project.title}
