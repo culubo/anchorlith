@@ -50,7 +50,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     // Use requestAnimationFrame to avoid synchronous setState
      
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestAnimationFrame(() => {
       setMounted(true)
     })
@@ -66,7 +65,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     
     // Update state asynchronously to avoid synchronous setState in effect
      
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestAnimationFrame(() => {
       setEffectiveColorMode(effective)
     })
@@ -103,9 +101,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   const setCustomization = (settings: Partial<CustomizationSettings>) => {
-    const newCustomization = { ...customization, ...settings }
-    setCustomizationState(newCustomization)
-    localStorage.setItem('customization', JSON.stringify(newCustomization))
+    setCustomizationState(prev => {
+      const newCustomization = { ...prev, ...settings }
+      try {
+        localStorage.setItem('customization', JSON.stringify(newCustomization))
+      } catch (e) {
+        console.error('Failed to save customization', e)
+      }
+      return newCustomization
+    })
   }
 
   // Listen for system theme changes

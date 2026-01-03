@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/theme'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -20,7 +20,13 @@ const FONTS = [
 export function ThemeSelector() {
   const { colorMode, customization, setColorMode, setCustomization } = useTheme()
   const [bgColor, setBgColor] = useState(customization.backgroundColor)
-  const [bgImageUrl, setBgImageUrl] = useState(customization.backgroundImage) 
+  const [bgImageUrl, setBgImageUrl] = useState(customization.backgroundImage)
+
+  // Sync local inputs if customization changes elsewhere
+  useEffect(() => {
+    setBgColor(customization.backgroundColor)
+    setBgImageUrl(customization.backgroundImage)
+  }, [customization])
 
   const handleBgColorChange = (color: string) => {
     setBgColor(color)

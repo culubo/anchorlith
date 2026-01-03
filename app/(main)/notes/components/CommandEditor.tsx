@@ -101,6 +101,9 @@ export function CommandEditor({
 
     // Handle Enter key for todo/list continuation
     if (e.key === 'Enter') {
+      // Allow Shift+Enter to insert a newline without handling list continuation
+      if (e.shiftKey) return
+
       const cursorPos = textarea.selectionStart
       const lines = value.split('\n')
       let charCount = 0
@@ -120,6 +123,13 @@ export function CommandEditor({
         const currentLine = lines[currentLineIndex]
         const commandType = getLineCommandType(currentLine)
         const isConverted = convertedLines.has(currentLineIndex)
+
+        // Only handle list/todo continuation when cursor is at the end of the line
+        const cursorAtLineEnd = cursorPos === (charCount + currentLine.length)
+        if (!cursorAtLineEnd) {
+          // Let default behavior apply (split line / insert newline)
+          return
+        }
         
         // Check if we're on a todo/list line (converted or not)
         if (commandType === 'todo' || commandType === 'list') {
@@ -132,7 +142,7 @@ export function CommandEditor({
             (commandType === 'todo' && trimmed.length > 6) ||
             (commandType === 'list' && trimmed.length > 6)
           
-          // If has content, create new item (whether converted or not)
+          // If has content and caret at end, create new item
           if (hasContent) {
             e.preventDefault()
             
@@ -401,7 +411,7 @@ export function CommandEditor({
         }}
         placeholder={placeholder}
         disabled={disabled}
-        className="absolute inset-0 w-full h-full p-0 bg-transparent border-0 resize-none focus:outline-none text-text-primary placeholder:text-text-tertiary disabled:opacity-50 opacity-0 z-10 caret-text-primary"
+        className="absolute inset-0 w-full h-full p-0 bg-transparent border-0 resize-none focus:outline-none text-text-primary placeholder:text-text-tertiary disabled:opacity-50 z-10 caret-text-primary"
         style={{ color: 'transparent' }}
       />
       {/* Visible overlay with syntax highlighting */}
