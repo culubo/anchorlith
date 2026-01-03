@@ -28,3 +28,4 @@ ALTER TABLE reminders
 ALTER TABLE reminders
   ADD CONSTRAINT check_repeat_interval_positive CHECK (repeat_interval > 0);
 
+
