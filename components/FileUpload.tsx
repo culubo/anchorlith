@@ -8,7 +8,7 @@ import { Loading } from './ui/Loading'
 interface FileUploadProps {
   linkedType: 'note' | 'event' | 'todo' | 'portfolio'
   linkedId?: string
-  onUploadComplete?: (file: any) => void
+  onUploadComplete?: (file: unknown) => void
   accept?: string
 }
 
@@ -38,8 +38,9 @@ export function FileUpload({
       const uploadedFile = await uploadFile(file, linkedType, linkedId)
       onUploadComplete?.(uploadedFile)
       e.target.value = '' // Reset input
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload file')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message || 'Failed to upload file')
     } finally {
       setIsUploading(false)
     }
