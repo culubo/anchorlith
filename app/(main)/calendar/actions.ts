@@ -39,7 +39,7 @@ export async function updateEvent(input: UpdateEventInput) {
 
   if (!user) throw new Error('Not authenticated')
 
-  const updateData: any = {}
+  const updateData: Partial<Record<string, unknown>> = {}
   if (input.title !== undefined) updateData.title = input.title
   if (input.start_at !== undefined) updateData.start_at = input.start_at
   if (input.end_at !== undefined) updateData.end_at = input.end_at
