@@ -49,7 +49,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       }
     }
     // Use requestAnimationFrame to avoid synchronous setState
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     requestAnimationFrame(() => {
       setMounted(true)
     })
@@ -64,7 +64,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       : colorMode
     
     // Update state asynchronously to avoid synchronous setState in effect
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     requestAnimationFrame(() => {
       setEffectiveColorMode(effective)
     })

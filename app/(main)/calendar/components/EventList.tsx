@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { Event } from '@/lib/queries/events'
 import { formatDate, formatTime, formatDateTime } from '@/lib/utils/date'
 import { motion } from 'framer-motion'
@@ -17,7 +17,7 @@ export function EventList({ onEventChange }: EventListProps = {}) {
   const [loading, setLoading] = useState(true)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       const response = await fetch('/api/events')
       if (!response.ok) throw new Error('Failed to fetch events')
@@ -29,11 +29,11 @@ export function EventList({ onEventChange }: EventListProps = {}) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [onEventChange])
 
   useEffect(() => {
     loadEvents()
-  }, [])
+  }, [loadEvents])
 
   const handleDelete = async (eventId: string) => {
     if (!confirm('Delete this event?')) return

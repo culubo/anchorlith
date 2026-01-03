@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+
 import { Checkbox } from '@/components/ui/Checkbox'
 
 export default function LoginPage() {
@@ -10,7 +10,6 @@ export default function LoginPage() {
   const [stayLoggedIn, setStayLoggedIn] = useState(true)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const router = useRouter()
   
   // Check if Supabase is configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -29,7 +28,7 @@ export default function LoginPage() {
               Please configure your Supabase credentials in <code className="bg-red-100 dark:bg-red-900 px-1 rounded">.env.local</code> file.
               <br /><br />
               Get your credentials from: <br />
-              <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" className="underline">
+              <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="underline">
                 Supabase Dashboard → Settings → API
               </a>
             </p>

@@ -13,7 +13,7 @@ export default tseslint.config(
     plugins: {
       react,
       "react-hooks": reactHooks,
-      next: nextPlugin,
+      "@next/next": nextPlugin,
     },
     languageOptions: {
       parserOptions: {
