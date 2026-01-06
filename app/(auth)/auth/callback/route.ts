@@ -6,9 +6,24 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const origin = requestUrl.origin
+  const nextParam = requestUrl.searchParams.get('next')
+  const typeParam = requestUrl.searchParams.get('type')
+
+
+  // Always redirect to /auth/reset if either next=/auth/reset or type=recovery is present
+  let redirectPath = '/today'
+  if (
+    (nextParam && nextParam === '/auth/reset') ||
+    typeParam === 'recovery' ||
+    typeParam === 'invite'
+  ) {
+    redirectPath = '/auth/reset'
+  } else if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+    redirectPath = nextParam
+  }
 
   if (code) {
-    const supabaseResponse = NextResponse.redirect(`${origin}/today`)
+    const supabaseResponse = NextResponse.redirect(`${origin}${redirectPath}`)
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,4 +51,3 @@ export async function GET(request: NextRequest) {
   // If no code, redirect to login
   return NextResponse.redirect(`${origin}/login`)
 }
-
