@@ -127,6 +127,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [colorMode, mounted])
 
+  // Keyboard shortcut for image anarchy (Ctrl/Cmd + Shift + I)
+  useEffect(() => {
+    if (!mounted) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+        e.preventDefault()
+        setCustomization({ imageAnarchy: !customization.imageAnarchy })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mounted, customization.imageAnarchy, setCustomization])
+
   // Always provide context, even before mounting
   return (
     <ThemeContext.Provider

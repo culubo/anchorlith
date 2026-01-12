@@ -14,8 +14,19 @@ export function ReminderList() {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [showForm, setShowForm] = useState(false)
+  const getDefaultDate = (): string => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  }
+
+  const getDefaultTime = (): string => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  }
+
   const [title, setTitle] = useState('')
-  const [remindAt, setRemindAt] = useState('')
+  const [remindDate, setRemindDate] = useState(getDefaultDate())
+  const [remindTime, setRemindTime] = useState(getDefaultTime())
   const [repeatType, setRepeatType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null)
   const [repeatInterval, setRepeatInterval] = useState(1)
   const [repeatEndDate, setRepeatEndDate] = useState('')
@@ -54,20 +65,23 @@ export function ReminderList() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !remindAt) return
+    if (!title.trim() || !remindDate || !remindTime) return
+
+    const remindAtISO = new Date(`${remindDate}T${remindTime}`).toISOString()
 
     setIsSubmitting(true)
     try {
       await createReminder({
         title: title.trim(),
-        remind_at: new Date(remindAt).toISOString(),
+        remind_at: remindAtISO,
         repeat_type: repeatType || null,
         repeat_interval: repeatType ? repeatInterval : undefined,
         repeat_end_date: repeatEndDate ? new Date(repeatEndDate).toISOString() : null,
         event_id: eventId || null,
       })
       setTitle('')
-      setRemindAt('')
+      setRemindDate(getDefaultDate())
+      setRemindTime(getDefaultTime())
       setRepeatType(null)
       setRepeatInterval(1)
       setRepeatEndDate('')
@@ -143,13 +157,23 @@ export function ReminderList() {
             onChange={(e) => setTitle(e.target.value)}
             required
           />
-          <Input
-            label="Remind At"
-            type="datetime-local"
-            value={remindAt}
-            onChange={(e) => setRemindAt(e.target.value)}
-            required
-          />
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">Remind At</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                type="date"
+                value={remindDate}
+                onChange={(e) => setRemindDate(e.target.value)}
+                required
+              />
+              <Input
+                type="time"
+                value={remindTime}
+                onChange={(e) => setRemindTime(e.target.value)}
+                required
+              />
+            </div>
+          </div>
           
           <div>
             <label className="block text-sm text-text-secondary mb-2">
@@ -214,7 +238,8 @@ export function ReminderList() {
               onClick={() => {
                 setShowForm(false)
                 setTitle('')
-                setRemindAt('')
+                setRemindDate(getDefaultDate())
+                setRemindTime(getDefaultTime())
                 setRepeatType(null)
                 setRepeatInterval(1)
                 setRepeatEndDate('')
