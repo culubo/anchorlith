@@ -8,7 +8,7 @@ export default function MainLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-bg-primary">
+      <div className="min-h-screen" style={{ backgroundColor: 'transparent' }}>
         <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 safe-area-bottom">
           {children}

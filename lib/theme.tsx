@@ -74,24 +74,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     
     // Apply customization
     const root = document.documentElement
-    if (customization.backgroundColor) {
+    
+    // Apply background color
+    if (customization.backgroundColor && customization.backgroundColor.trim()) {
       root.style.setProperty('--custom-bg-color', customization.backgroundColor)
     } else {
       root.style.removeProperty('--custom-bg-color')
     }
     
-    if (customization.backgroundImage) {
+    // Apply background image
+    if (customization.backgroundImage && customization.backgroundImage.trim()) {
       root.style.setProperty('--custom-bg-image', `url(${customization.backgroundImage})`)
     } else {
       root.style.removeProperty('--custom-bg-image')
     }
     
+    // Apply font family
     if (customization.fontFamily && customization.fontFamily !== 'system-ui') {
       root.style.setProperty('--custom-font-family', customization.fontFamily)
     } else {
       root.style.removeProperty('--custom-font-family')
     }
     
+    // Apply image anarchy attribute
     root.setAttribute('data-image-anarchy', customization.imageAnarchy ? 'true' : 'false')
   }, [colorMode, customization, mounted])
 
@@ -127,19 +132,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [colorMode, mounted])
 
-  // Keyboard shortcut for image anarchy (Ctrl/Cmd + Shift + I)
+  // Keyboard shortcut for image anarchy (Ctrl/Cmd + Shift + A for Anarchy)
+  // Using 'A' instead of 'I' to avoid conflict with email shortcuts
   useEffect(() => {
     if (!mounted) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+      // Only trigger if not typing in an input/textarea
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return
+      }
+      
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         e.preventDefault()
+        e.stopPropagation()
         setCustomization({ imageAnarchy: !customization.imageAnarchy })
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown, true) // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
   }, [mounted, customization.imageAnarchy, setCustomization])
 
   // Always provide context, even before mounting
