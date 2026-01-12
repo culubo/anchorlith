@@ -185,12 +185,12 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="mb-3 flex items-center gap-2"> 
+        <div className="mb-3">
           {aiError && (
-            <div className="text-sm text-red-500">{aiError}</div>
+            <div className="text-sm text-red-500 mb-2">{aiError}</div>
           )}
           {showAISuggestion && aiSuggestion && (
-            <div className="w-full p-3 border border-border-subtle rounded bg-bg-elevated mt-2">
+            <div className="w-full p-3 border border-border-subtle rounded bg-bg-elevated mb-2">
               <div className="prose max-w-none text-sm text-text-primary whitespace-pre-wrap">{aiSuggestion}</div>
               <div className="mt-3 flex gap-2">
                 <Button onClick={() => { setBody(prev => prev + '\n\n' + aiSuggestion); setShowAISuggestion(false); setAiSuggestion(null) }} className="text-sm">Insert</Button>
@@ -200,75 +200,83 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
             </div>
           )}
 
-          <Button onClick={() => setShowTableEditor(true)} variant="ghost" className="text-sm">Insert Table</Button>
-          <Button onClick={() => setShowDrawingPad(true)} variant="ghost" className="text-sm">Insert Drawing</Button>
+          <details className="group">
+            <summary className="cursor-pointer text-sm text-text-secondary hover:text-text-primary list-none flex items-center gap-2">
+              <span className="group-open:hidden">+</span>
+              <span className="group-open:hidden">Tools</span>
+              <span className="hidden group-open:inline">−</span>
+              <span className="hidden group-open:inline">Tools</span>
+            </summary>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Button onClick={() => setShowTableEditor(true)} variant="ghost" className="text-xs">Table</Button>
+              <Button onClick={() => setShowDrawingPad(true)} variant="ghost" className="text-xs">Drawing</Button>
+              <Button
+                onClick={async () => {
+                  // Check opt-in
+                  const enabled = typeof window !== 'undefined' && localStorage.getItem('predictiveWritingOptIn') === 'true'
+                  if (!enabled) {
+                    if (!confirm('Predictive writing is disabled. Enable it in Settings?')) return
+                    try { localStorage.setItem('predictiveWritingOptIn', 'true') } catch (e) {}
+                  }
 
-          <Button
-            onClick={async () => {
-              // Check opt-in
-              const enabled = typeof window !== 'undefined' && localStorage.getItem('predictiveWritingOptIn') === 'true'
-              if (!enabled) {
-                if (!confirm('Predictive writing is disabled. Enable it in Settings?')) return
-                try { localStorage.setItem('predictiveWritingOptIn', 'true') } catch (e) {}
-              }
+                  // Fetch suggestion
+                  setAiLoading(true)
+                  setAiError(null)
+                  try {
+                    const resp = await fetch('/api/ai/suggest', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ context: body || note?.body_md || '', instructions: 'Continue the note in a concise, helpful way. Return only the suggested content without commentary.' }),
+                    })
 
-              // Fetch suggestion
-              setAiLoading(true)
-              setAiError(null)
-              try {
-                const resp = await fetch('/api/ai/suggest', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ context: body || note?.body_md || '', instructions: 'Continue the note in a concise, helpful way. Return only the suggested content without commentary.' }),
-                })
+                    if (resp.status === 501) {
+                      setAiError('Server not configured for AI suggestions (OPENAI_API_KEY missing)')
+                      setAiLoading(false)
+                      return
+                    }
 
-                if (resp.status === 501) {
-                  setAiError('Server not configured for AI suggestions (OPENAI_API_KEY missing)')
-                  setAiLoading(false)
-                  return
-                }
+                    if (!resp.ok) {
+                      const txt = await resp.text()
+                      setAiError('Failed to get suggestion: ' + txt)
+                      setAiLoading(false)
+                      return
+                    }
 
-                if (!resp.ok) {
-                  const txt = await resp.text()
-                  setAiError('Failed to get suggestion: ' + txt)
-                  setAiLoading(false)
-                  return
-                }
-
-                const json = await resp.json()
-                setAiSuggestion(typeof json.suggestion === 'string' ? json.suggestion : '')
-                setShowAISuggestion(true)
-              } catch (err: any) {
-                setAiError(err?.message || 'Unknown error')
-              } finally {
-                setAiLoading(false)
-              }
-            }}
-            variant="ghost"
-            className="text-sm"
-            disabled={!isEditable}
-          >
-            {aiLoading ? 'Suggesting…' : 'Get suggestion'}
-          </Button>
-
-          <label className="flex items-center gap-2 text-sm ml-auto">
-            <span className="text-text-secondary">Import</span>
-            <input type="file" accept="text/csv,text/plain,text/calendar" onChange={async (e) => {
-              const file = e.target.files?.[0]
-              if (!file) return
-              const text = await file.text()
-              if (file.type === 'text/csv') {
-                const md = parseCSVToMarkdownTable(text)
-                setBody(prev => prev + '\n\n' + md)
-              } else if (file.type === 'text/calendar' || file.name.endsWith('.ics')) {
-                const list = parseICSToList(text)
-                setBody(prev => prev + '\n\n' + list)
-              } else {
-                // fallback - append raw text as a code block
-                setBody(prev => `${prev}\n\n\`\`\`\n${text}\n\`\`\``)
-              }
-            }} />
-          </label>
+                    const json = await resp.json()
+                    setAiSuggestion(typeof json.suggestion === 'string' ? json.suggestion : '')
+                    setShowAISuggestion(true)
+                  } catch (err: any) {
+                    setAiError(err?.message || 'Unknown error')
+                  } finally {
+                    setAiLoading(false)
+                  }
+                }}
+                variant="ghost"
+                className="text-xs"
+                disabled={!isEditable}
+              >
+                {aiLoading ? 'Loading…' : 'Suggestion'}
+              </Button>
+              <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer">
+                <span>Import</span>
+                <input type="file" accept="text/csv,text/plain,text/calendar" onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  const text = await file.text()
+                  if (file.type === 'text/csv') {
+                    const md = parseCSVToMarkdownTable(text)
+                    setBody(prev => prev + '\n\n' + md)
+                  } else if (file.type === 'text/calendar' || file.name.endsWith('.ics')) {
+                    const list = parseICSToList(text)
+                    setBody(prev => prev + '\n\n' + list)
+                  } else {
+                    // fallback - append raw text as a code block
+                    setBody(prev => `${prev}\n\n\`\`\`\n${text}\n\`\`\``)
+                  }
+                }} className="text-xs" />
+              </label>
+            </div>
+          </details>
         </div>
 
         {shouldShowPreview ? (

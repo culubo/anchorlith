@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { resolveSiteUrl } from '@/lib/site-url'
 
 import { Checkbox } from '@/components/ui/Checkbox'
 
@@ -53,24 +54,7 @@ export default function LoginPage() {
       // Store preference for session persistence
       localStorage.setItem('stayLoggedIn', stayLoggedIn.toString())
 
-      // Resolve site URL safely. Prefer NEXT_PUBLIC_SITE_URL, but fall back to window.location.origin if missing.
-      // NOTE: we intentionally do not show a UI error for missing NEXT_PUBLIC_SITE_URL so single-admin setups are not blocked.
-      const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
-      let siteUrl: string
-
-      if (process.env.NODE_ENV === 'production') {
-        if (!envSiteUrl || envSiteUrl.includes('localhost') || envSiteUrl.includes('127.0.0.1')) {
-          // Warn in console, but continue using the current origin as a fallback so email links still work for single-user sites.
-          // For production reliability in multi-user setups, set NEXT_PUBLIC_SITE_URL to your site domain and add
-          // https://<your-domain>/auth/callback to Supabase Auth → Redirect URLs.
-          console.warn('NEXT_PUBLIC_SITE_URL is missing or points to localhost; using window.location.origin as a fallback for email redirects.')
-          siteUrl = window.location.origin
-        } else {
-          siteUrl = envSiteUrl
-        }
-      } else {
-        siteUrl = envSiteUrl || window.location.origin
-      }
+      const siteUrl = resolveSiteUrl()
 
       if (mode === 'magic') {
         const redirectUrl = `${siteUrl}/auth/callback`
@@ -228,4 +212,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

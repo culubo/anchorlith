@@ -166,6 +166,9 @@ export function ThemeSelector() {
             </span>
           </label>
         </div>
+        <p className="text-xs text-text-tertiary mt-2">
+          Keyboard shortcut: Press <kbd className="px-1.5 py-0.5 bg-bg-secondary border border-border-subtle rounded text-xs">Ctrl/Cmd + Shift + I</kbd> to toggle
+        </p>
       </div>
     </div>
   )

@@ -14,6 +14,17 @@ interface EventFormProps {
 }
 
 export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFormProps) {
+  // Helper to get default date (today) and time (current hour)
+  const getDefaultDate = (): string => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  }
+
+  const getDefaultTime = (): string => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  }
+
   // Format date for datetime-local input
   const formatDateForInput = (date: Date): string => {
     const year = date.getFullYear()
@@ -24,26 +35,56 @@ export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFo
     return `${year}-${month}-${day}T${hours}:${minutes}`
   }
 
+  const parseDateAndTime = (dateStr: string, timeStr: string): string => {
+    if (!dateStr || !timeStr) return ''
+    return `${dateStr}T${timeStr}`
+  }
+
   const getInitialStartDate = (): string => {
     if (prefilledDate) {
-      return formatDateForInput(prefilledDate)
+      const d = prefilledDate
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     }
     if (event?.start_at) {
-      return formatDateForInput(new Date(event.start_at))
+      const d = new Date(event.start_at)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     }
-    return ''
+    return getDefaultDate()
+  }
+
+  const getInitialStartTime = (): string => {
+    if (prefilledDate) {
+      const d = prefilledDate
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    }
+    if (event?.start_at) {
+      const d = new Date(event.start_at)
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    }
+    return getDefaultTime()
   }
 
   const getInitialEndDate = (): string => {
     if (event?.end_at) {
-      return formatDateForInput(new Date(event.end_at))
+      const d = new Date(event.end_at)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+    return ''
+  }
+
+  const getInitialEndTime = (): string => {
+    if (event?.end_at) {
+      const d = new Date(event.end_at)
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     }
     return ''
   }
 
   const [title, setTitle] = useState(event?.title || '')
-  const [startAt, setStartAt] = useState(getInitialStartDate())
-  const [endAt, setEndAt] = useState(getInitialEndDate())
+  const [startDate, setStartDate] = useState(getInitialStartDate())
+  const [startTime, setStartTime] = useState(getInitialStartTime())
+  const [endDate, setEndDate] = useState(getInitialEndDate())
+  const [endTime, setEndTime] = useState(getInitialEndTime())
   const [location, setLocation] = useState(event?.location || '')
   const [notes, setNotes] = useState(event?.notes || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,23 +93,36 @@ export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFo
   useEffect(() => {
     if (event) {
       setTitle(event.title || '')
-      setStartAt(event.start_at ? formatDateForInput(new Date(event.start_at)) : '')
-      setEndAt(event.end_at ? formatDateForInput(new Date(event.end_at)) : '')
+      if (event.start_at) {
+        const d = new Date(event.start_at)
+        setStartDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+        setStartTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+      }
+      if (event.end_at) {
+        const d = new Date(event.end_at)
+        setEndDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+        setEndTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+      }
       setLocation(event.location || '')
       setNotes(event.notes || '')
     }
   }, [event])
 
-  // Update startAt when prefilledDate changes
+  // Update startDate/startTime when prefilledDate changes
   useEffect(() => {
     if (prefilledDate) {
-      setStartAt(formatDateForInput(prefilledDate))
+      const d = prefilledDate
+      setStartDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+      setStartTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
     }
   }, [prefilledDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !startAt) return
+    if (!title.trim() || !startDate || !startTime) return
+
+    const startAtISO = new Date(parseDateAndTime(startDate, startTime)).toISOString()
+    const endAtISO = (endDate && endTime) ? new Date(parseDateAndTime(endDate, endTime)).toISOString() : undefined
 
     setIsSubmitting(true)
     try {
@@ -77,8 +131,8 @@ export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFo
         await updateEvent({
           id: event.id,
           title: title.trim(),
-          start_at: new Date(startAt).toISOString(),
-          end_at: endAt ? new Date(endAt).toISOString() : undefined,
+          start_at: startAtISO,
+          end_at: endAtISO,
           location: location.trim() || undefined,
           notes: notes.trim() || undefined,
         })
@@ -86,8 +140,8 @@ export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFo
         // Create new event
         await createEvent({
           title: title.trim(),
-          start_at: new Date(startAt).toISOString(),
-          end_at: endAt ? new Date(endAt).toISOString() : undefined,
+          start_at: startAtISO,
+          end_at: endAtISO,
           location: location.trim() || undefined,
           notes: notes.trim() || undefined,
         })
@@ -108,20 +162,39 @@ export function EventForm({ onSuccess, onCancel, prefilledDate, event }: EventFo
         onChange={(e) => setTitle(e.target.value)}
         required
       />
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          label="Start"
-          type="datetime-local"
-          value={startAt}
-          onChange={(e) => setStartAt(e.target.value)}
-          required
-        />
-        <Input
-          label="End (optional)"
-          type="datetime-local"
-          value={endAt}
-          onChange={(e) => setEndAt(e.target.value)}
-        />
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm text-text-secondary mb-2">Start</label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+            <Input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-text-secondary mb-2">End (optional)</label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <Input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
       <Input
         label="Location (optional)"

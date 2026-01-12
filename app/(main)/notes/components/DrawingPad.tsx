@@ -47,8 +47,11 @@ export default function DrawingPad({ onSave, onClose }: DrawingPadProps) {
     if (!canvas || !c) return
     setIsDrawing(true)
     const rect = canvas.getBoundingClientRect()
+    // Use proper coordinate calculation without offset
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
     c.beginPath()
-    c.moveTo(e.clientX - rect.left, e.clientY - rect.top)
+    c.moveTo(x, y)
   }
 
   const pointerMove = (e: React.PointerEvent) => {
@@ -57,7 +60,10 @@ export default function DrawingPad({ onSave, onClose }: DrawingPadProps) {
     const c = ctx
     if (!canvas || !c) return
     const rect = canvas.getBoundingClientRect()
-    c.lineTo(e.clientX - rect.left, e.clientY - rect.top)
+    // Use proper coordinate calculation without offset
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    c.lineTo(x, y)
     c.stroke()
   }
 
@@ -87,22 +93,27 @@ export default function DrawingPad({ onSave, onClose }: DrawingPadProps) {
 
   return (
     <div className="p-4 bg-bg-secondary rounded shadow-md">
-      <div className="mb-3 flex items-center gap-2">
-        <Button onClick={handleSave} className="text-sm">Save</Button>
-        <Button onClick={handleClear} variant="ghost" className="text-sm">Clear</Button>
-        <Button onClick={onClose} variant="ghost" className="text-sm">Cancel</Button>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button onClick={handleClear} variant="ghost" className="text-sm">Clear</Button>
+          <Button onClick={onClose} variant="ghost" className="text-sm">Cancel</Button>
+        </div>
+        <Button onClick={handleSave} className="text-sm">Done</Button>
       </div>
-      <div className="border border-border-subtle rounded overflow-hidden">
+      <div className="border border-border-subtle rounded overflow-hidden bg-white" style={{ padding: 0, margin: 0 }}>
         <canvas
           ref={canvasRef}
           onPointerDown={pointerDown}
           onPointerMove={pointerMove}
           onPointerUp={pointerUp}
           onPointerLeave={pointerUp}
-          className="w-full touch-none"
+          className="w-full touch-none block"
+          style={{ display: 'block', margin: 0, padding: 0 }}
         />
       </div>
-      <p className="mt-2 text-xs text-text-secondary">Draw with mouse or touch. Save will insert the image into the note as an inline image (data URI).</p>
+      <p className="mt-2 text-xs text-text-secondary">
+        Draw with mouse or touch. Click &quot;Done&quot; to insert the image into your note.
+      </p>
     </div>
   )
 }
