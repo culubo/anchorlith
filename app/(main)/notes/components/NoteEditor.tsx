@@ -146,22 +146,11 @@ export function NoteEditor({ note, onNoteChange, allowEdit = true }: NoteEditorP
               checked={canEditPastNotes}
               onChange={(e) => {
                 setCanEditPastNotes(e.target.checked)
-                if (!e.target.checked) {
-                  setIsPreview(true) // Auto-switch to preview when edit is disabled
-                }
+                setIsPreview(!e.target.checked) // Toggle preview based on edit checkbox
               }}
               label="Edit"
               className="text-sm"
             />
-          )}
-          {isEditable && (
-            <Button
-              onClick={() => setIsPreview(!isPreview)}
-              variant="ghost"
-              className="text-sm"
-            >
-              {isPreview ? 'Edit' : 'Preview'}
-            </Button>
           )}
           {note && isEditable && (
             <Button
